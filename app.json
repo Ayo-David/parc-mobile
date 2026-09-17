@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.parc.mobile",
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "Parc uses Face ID to let you sign in and authorize transactions quickly and securely."
       }
     },
     "android": {
@@ -38,7 +39,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-secure-store",
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,

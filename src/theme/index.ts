@@ -6,7 +6,7 @@ export { darkTheme } from "./themes/darkTheme";
 export { applyTenantOverrides, validateTenantThemeOverrides } from "./tenantTheme";
 export type { TenantThemeValidationResult } from "./tenantTheme";
 export { isValidHexColor, withAlpha } from "./colorUtils";
-export { noopStorageAdapter } from "./storage";
+export { asyncStorageThemeAdapter, noopStorageAdapter } from "./storage";
 export type { ThemeStorageAdapter } from "./storage";
 export type {
   ButtonSize,

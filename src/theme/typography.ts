@@ -85,12 +85,11 @@ export const typography: Typography = {
     lineHeight: 16,
     letterSpacing: -0.01 * 16,
   },
-  // Figma's amount-xl token specifies JetBrains Mono; fontFamilies.mono
-  // currently resolves to the same system-font fallback as fontFamilies.sans
-  // (see primitives.ts) until the font gap and the mono-vs-sans contradiction
-  // noted in docs/theme/README.md are resolved.
+  // Plus Jakarta Sans is authoritative for financial amounts and data
+  // (confirmed decision superseding the amount-xl token's original
+  // JetBrains Mono spec in Figma). See docs/theme/README.md.
   amountXl: {
-    fontFamily: fontFamilies.mono,
+    fontFamily: fontFamilies.sans,
     fontWeight: "700",
     fontSize: 40,
     lineHeight: 40,

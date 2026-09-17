@@ -102,18 +102,16 @@ export const motionTokens = {
 } as const;
 
 /**
- * Font family gap: Figma specifies "Plus Jakarta Sans" (all UI text) and
- * "JetBrains Mono" (financial amounts, per the amount-xl token — though a
- * separate design note in the same file says amounts should also move to
- * Plus Jakarta Sans; see docs/theme/README.md "Open questions"). Neither
- * font's .ttf/.otf files exist in this repository yet (no assets/fonts
- * directory, no expo-font useFonts call). Until the real files are added
- * and loaded, every family below resolves to the platform system font so
- * the app renders correctly; swap these two constants once fonts land.
+ * Font family gap: Figma specifies "Plus Jakarta Sans" for all UI text,
+ * including financial amounts and data (confirmed authoritative, superseding
+ * the amount-xl token's original JetBrains Mono spec). No .ttf/.otf file
+ * exists in this repository yet (no assets/fonts directory, no expo-font
+ * useFonts call). Until the real file is added and loaded, this resolves to
+ * the platform system font so the app renders correctly; swap this constant
+ * once the font lands. See docs/theme/README.md.
  */
 const systemFont = Platform.select({ ios: "System", android: "sans-serif", default: "System" }) as string;
 
 export const fontFamilies = {
   sans: systemFont,
-  mono: systemFont,
 };
