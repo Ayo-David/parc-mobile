@@ -32,8 +32,8 @@ export function OtpInput({ length = 6, value, onChange, autoFocus = false, hasEr
       width: theme.control.otpBoxWidth,
       height: theme.control.otpBoxHeight,
       borderRadius: theme.radii.input,
-      borderWidth: 1,
-      backgroundColor: theme.colors.surface,
+      borderWidth: theme.borderWidth.otpBox,
+      backgroundColor: theme.colors.background,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -55,7 +55,7 @@ export function OtpInput({ length = 6, value, onChange, autoFocus = false, hasEr
         {Array.from({ length }).map((_, index) => {
           const digit = value[index];
           const isActive = index === value.length;
-          const borderColor = hasError ? theme.colors.borderError : isActive ? theme.colors.borderFocus : theme.colors.border;
+          const borderColor = hasError ? theme.colors.borderError : isActive ? theme.colors.borderFocus : theme.colors.borderSubtle;
           return (
             <View key={index} style={[styles.box, { borderColor }]}>
               <Text style={styles.digit}>{digit ?? ""}</Text>

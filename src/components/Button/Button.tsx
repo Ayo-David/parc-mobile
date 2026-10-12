@@ -18,17 +18,19 @@ export function Button({ label, onPress, variant = "primary", size = "medium", d
   const recipe = theme.components.button[variant][isDisabled ? "disabled" : "default"];
   const pressedRecipe = theme.components.button[variant].pressed;
 
+  const labelTypography = size === "large" ? theme.typography.buttonLarge : size === "small" ? theme.typography.buttonSmall : theme.typography.button;
+
   const styles = StyleSheet.create({
     base: {
       height: theme.components.buttonHeight[size],
       borderRadius: theme.radii.button,
-      borderWidth: recipe.borderColor === "transparent" ? 0 : 1,
+      borderWidth: recipe.borderColor === "transparent" ? 0 : theme.borderWidth.thin,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: theme.semanticSpacing.component,
     },
     label: {
-      ...theme.typography.button,
+      ...labelTypography,
     },
   });
 

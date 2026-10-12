@@ -1,25 +1,31 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 import { useTransfer } from "@/api/queries/useTransfer";
-import { Button } from "@/components/Button/Button";
+import type { TransferStatus } from "@/api/schemas";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
+import { TransactionResultLayout, type TransactionResultTone } from "@/components/TransactionResultLayout/TransactionResultLayout";
 import { useTransferDraftStore } from "@/features/transfers/transferDraftStore";
 import { useTheme } from "@/theme";
-import { formatMoney } from "@/utils/money";
+
+const IN_FLIGHT_STATUSES: TransferStatus[] = ["CREATED", "RESERVED", "SUBMITTED"];
 
 /**
- * Figma "Send Money — Success Screen". `PENDING`/`AMBIGUOUS`/`MANUAL_REVIEW`
- * are durable states here — this screen keeps polling GET /v1/transfers/{id}
- * (via useTransfer's refetchInterval) rather than treating them as errors,
- * per the confirmed Transfer.status contract (PLAN.md Part 4/7) and the
- * platform-wide "never resubmit on ambiguity" rule.
+ * Figma "Send Money — Success Screen" plus, for the first time, its real
+ * failed/pending siblings ("Transfer 01 — Failed" node 428:62, "Transfer
+ * 02 — Pending" node 428:157, missing-mobile.md §0/§4) — previously this
+ * screen rendered the same plain centered text for every status. Still
+ * polls `GET /v1/transfers/{id}` via useTransfer's refetchInterval and
+ * still never resubmits on PENDING/AMBIGUOUS/MANUAL_REVIEW, matching the
+ * confirmed durable-pending contract (PLAN.md Part 4/7) — only the
+ * presentation changed.
  */
 export default function TransferSuccessScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const { transferId } = useLocalSearchParams<{ transferId: string }>();
   const transfer = useTransfer(transferId);
+  const draft = useTransferDraftStore();
   const resetDraft = useTransferDraftStore((state) => state.reset);
 
   function handleDone() {
@@ -27,30 +33,19 @@ export default function TransferSuccessScreen() {
     router.replace("/(tabs)");
   }
 
-  const styles = StyleSheet.create({
-    content: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.semanticSpacing.component,
-      paddingBottom: theme.semanticSpacing.section,
-    },
-    title: {
-      ...theme.typography.h2,
-      color: theme.colors.textPrimary,
-      textAlign: "center",
-    },
-    subtitle: {
-      ...theme.typography.bodyMedium,
-      color: theme.colors.textSecondary,
-      textAlign: "center",
-    },
-  });
+  function handleBackToWallet() {
+    resetDraft();
+    router.replace("/(tabs)");
+  }
+
+  function handleTryAgain() {
+    router.replace("/transfers");
+  }
 
   if (transfer.isLoading || !transfer.data) {
     return (
       <ScreenContainer>
-        <View style={styles.content}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator color={theme.colors.primary} />
         </View>
       </ScreenContainer>
@@ -58,31 +53,38 @@ export default function TransferSuccessScreen() {
   }
 
   const { status, amount_minor, currency } = transfer.data;
-  const amountText = formatMoney({ amount_minor, currency });
+  const money = { amount_minor, currency };
+  const recipientLines = draft.accountName && draft.accountNumber && draft.bankName ? [`To ${draft.accountName}`, `${draft.accountNumber} · ${draft.bankName}`] : undefined;
 
-  const presentation: Record<typeof status, { title: string; subtitle: string }> = {
-    CREATED: { title: "Processing…", subtitle: `Sending ${amountText}` },
-    RESERVED: { title: "Processing…", subtitle: `Sending ${amountText}` },
-    SUBMITTED: { title: "Processing…", subtitle: `Sending ${amountText}` },
-    PENDING: { title: "Still processing", subtitle: "This is taking a little longer than usual. We'll update this automatically." },
-    AMBIGUOUS: { title: "Confirming outcome", subtitle: "We're verifying this transfer with the bank. This can take a few minutes." },
-    MANUAL_REVIEW: { title: "Under review", subtitle: "This transfer needs a manual check. We'll notify you once it's resolved." },
-    SUCCEEDED: { title: "Transfer successful!", subtitle: `${amountText} sent successfully.` },
-    FAILED: { title: "Transfer failed", subtitle: "This transfer could not be completed. No funds were deducted." },
-    REVERSED: { title: "Transfer reversed", subtitle: `${amountText} has been returned to your wallet.` },
+  if (IN_FLIGHT_STATUSES.includes(status)) {
+    return <TransactionResultLayout tone="success" isProcessing title="Processing…" money={money} detailLines={recipientLines} />;
+  }
+
+  const presentation: Partial<Record<TransferStatus, { tone: TransactionResultTone; title: string; detailLines?: string[] }>> = {
+    PENDING: { tone: "warning", title: "Still processing", detailLines: ["This is taking a little longer than usual.", "We'll update you automatically."] },
+    AMBIGUOUS: { tone: "warning", title: "We're confirming this transfer", detailLines: recipientLines ? [...recipientLines, "This can take a few minutes."] : ["This can take a few minutes."] },
+    MANUAL_REVIEW: { tone: "warning", title: "Under review", detailLines: ["This transfer needs a manual check.", "We'll notify you once it's resolved."] },
+    SUCCEEDED: { tone: "success", title: "Transfer Successful!", detailLines: recipientLines },
+    FAILED: { tone: "error", title: "Transfer Failed", detailLines: recipientLines ? [...recipientLines, "No funds were deducted."] : ["This transfer could not be completed.", "No funds were deducted."] },
+    REVERSED: { tone: "warning", title: "Transfer Reversed", detailLines: ["The amount has been returned to your wallet."] },
   };
 
-  const { title, subtitle } = presentation[status];
-  const isTerminal = status === "SUCCEEDED" || status === "FAILED" || status === "REVERSED";
+  const view = presentation[status];
+  if (!view) {
+    return <TransactionResultLayout tone="warning" isProcessing title="Processing…" money={money} />;
+  }
+
+  const isUncertain = status === "PENDING" || status === "AMBIGUOUS" || status === "MANUAL_REVIEW";
+  const showBackToWallet = isUncertain || status === "FAILED";
 
   return (
-    <ScreenContainer>
-      <View style={styles.content}>
-        {!isTerminal ? <ActivityIndicator color={theme.colors.primary} /> : null}
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        {isTerminal ? <Button label="Done" onPress={handleDone} /> : null}
-      </View>
-    </ScreenContainer>
+    <TransactionResultLayout
+      tone={view.tone}
+      title={view.title}
+      money={money}
+      detailLines={view.detailLines}
+      secondaryAction={showBackToWallet ? { label: "Back to wallet", onPress: handleBackToWallet } : undefined}
+      primaryAction={isUncertain ? { label: "Check status", onPress: () => void transfer.refetch() } : status === "FAILED" ? { label: "Try again", onPress: handleTryAgain } : { label: "Done", onPress: handleDone }}
+    />
   );
 }

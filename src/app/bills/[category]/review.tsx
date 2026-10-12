@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -9,6 +9,7 @@ import { createIdempotencyKey } from "@/api/idempotency";
 import { useProfile } from "@/api/queries/useProfile";
 import { useWalletSourceAccount } from "@/api/queries/useWalletSourceAccount";
 import type { BillCategory } from "@/api/schemas";
+import { BackButton } from "@/components/BackButton/BackButton";
 import { Button } from "@/components/Button/Button";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TransactionPinSheet } from "@/components/TransactionPinSheet/TransactionPinSheet";
@@ -17,10 +18,13 @@ import { useTheme } from "@/theme";
 import { formatMoney } from "@/utils/money";
 
 /**
- * Figma bill checkout pattern (Part 2 "BillCheckoutSheet"), fed by the
- * fully-typed Bills contract. RESOLVED (PLAN.md "Real blockers"):
- * `source_account_id` now comes from the real `GET /v1/wallet/source-account`
- * endpoint.
+ * Figma's own review step is really just the amount + summary rows shown
+ * inside the "Use Payment PIN" bottom sheet (node 233:9806) — a modal, not
+ * a separate full screen. This keeps the existing full-screen review (so
+ * `TransactionPinSheet`, already a real shared component, still opens as
+ * its own sheet on top) but restyles it to match that modal's visual
+ * language: a large mono amount headline, then the same row layout Figma
+ * uses for Product/Number.
  */
 export default function BillReviewScreen() {
   const { theme } = useTheme();
@@ -75,49 +79,59 @@ export default function BillReviewScreen() {
   }
 
   const styles = StyleSheet.create({
+    header: { flexDirection: "row", alignItems: "center", gap: theme.spacing.md - 4, paddingTop: theme.semanticSpacing.component, paddingBottom: theme.spacing.sm },
+    title: { ...theme.typography.text16Bold, color: theme.colors.textPrimary, flex: 1 },
     content: {
       flex: 1,
-      paddingTop: theme.semanticSpacing.section,
       gap: theme.semanticSpacing.form,
     },
-    title: {
-      ...theme.typography.h2,
-      color: theme.colors.textPrimary,
-      marginBottom: theme.semanticSpacing.section,
+    amountWrap: { alignItems: "center", paddingVertical: theme.semanticSpacing.section },
+    amount: { ...theme.typography.text30ExtraBoldMono, color: theme.colors.textPrimary },
+    card: {
+      backgroundColor: theme.components.card.backgroundColor,
+      borderRadius: theme.components.card.radius,
+      padding: theme.components.card.padding,
+      ...theme.components.card.shadow,
     },
     row: {
       flexDirection: "row",
       justifyContent: "space-between",
       paddingVertical: theme.semanticSpacing.form,
-      borderBottomWidth: 1,
+      borderBottomWidth: theme.borderWidth.thin,
       borderBottomColor: theme.colors.divider,
     },
-    label: { ...theme.typography.bodyMedium, color: theme.colors.textSecondary },
-    value: { ...theme.typography.bodyMedium, fontWeight: "600", color: theme.colors.textPrimary },
-    error: { ...theme.typography.bodySmall, color: theme.colors.error, marginTop: theme.semanticSpacing.component },
+    rowLast: { borderBottomWidth: 0 },
+    label: { ...theme.typography.text13Regular, color: theme.colors.textSecondary },
+    value: { ...theme.typography.text14Bold, color: theme.colors.textPrimary },
+    error: { ...theme.typography.text12Regular, color: theme.colors.error, marginTop: theme.semanticSpacing.component },
     footer: { paddingTop: theme.semanticSpacing.component, paddingBottom: theme.semanticSpacing.component },
   });
 
   return (
     <ScreenContainer>
-      <View style={styles.content}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.header}>
+        <BackButton />
         <Text style={styles.title}>Review payment</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>Product</Text>
-          <Text style={styles.value}>{draft.product?.product_name}</Text>
+      </View>
+      <View style={styles.content}>
+        <View style={styles.amountWrap}>
+          {isQuoting ? (
+            <ActivityIndicator color={theme.colors.primary} />
+          ) : (
+            <Text style={styles.amount}>{draft.totalDebitMinor ? formatMoney({ amount_minor: draft.totalDebitMinor, currency: "NGN" }) : "—"}</Text>
+          )}
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>{draft.customerName ? "Customer" : "Number"}</Text>
-          <Text style={styles.value}>{draft.customerName ?? draft.customerIdentifier}</Text>
-        </View>
-        {isQuoting ? (
-          <ActivityIndicator color={theme.colors.primary} />
-        ) : draft.totalDebitMinor ? (
+        <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.label}>Total</Text>
-            <Text style={styles.value}>{formatMoney({ amount_minor: draft.totalDebitMinor, currency: "NGN" })}</Text>
+            <Text style={styles.label}>Product</Text>
+            <Text style={styles.value}>{draft.product?.product_name}</Text>
           </View>
-        ) : null}
+          <View style={[styles.row, styles.rowLast]}>
+            <Text style={styles.label}>{draft.customerName ? "Customer" : "Number"}</Text>
+            <Text style={styles.value}>{draft.customerName ?? draft.customerIdentifier}</Text>
+          </View>
+        </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
       <View style={styles.footer}>

@@ -6,15 +6,19 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { Button } from "@/components/Button/Button";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
+import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
 import { useTheme } from "@/theme";
 
 /**
- * Figma "Biometric" (node 226:2690). Only confirms the device supports and
- * can perform a local biometric prompt, then records that on the customer
- * profile via POST /v1/onboarding/complete's `biometric_enrolled` flag — it
- * does not register a passkey/WebAuthn credential (deferred per PLAN.md
- * Part 1, "Biometric login" is a separate, not-yet-built feature).
+ * Figma "Biometric" (node 226:2690) plus, for the first time, its real
+ * failure state ("Onboarding 02 — Biometric Setup Failed", node 439:321,
+ * missing-mobile.md §2.2). Only confirms the device supports and can
+ * perform a local biometric prompt, then records that on the customer
+ * profile via POST /v1/onboarding/complete's `biometric_enrolled` flag —
+ * it does not register a passkey/WebAuthn credential (deferred per
+ * PLAN.md Part 1, "Biometric login" is a separate, not-yet-built
+ * feature).
  */
 export default function BiometricSetupScreen() {
   const { theme } = useTheme();
@@ -22,12 +26,19 @@ export default function BiometricSetupScreen() {
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [setupFailed, setSetupFailed] = useState(false);
 
   useEffect(() => {
     LocalAuthentication.hasHardwareAsync()
       .then((hasHardware) => (hasHardware ? LocalAuthentication.isEnrolledAsync() : false))
-      .then(setIsSupported)
-      .catch(() => setIsSupported(false));
+      .then((supported) => {
+        setIsSupported(supported);
+        if (!supported) setSetupFailed(true);
+      })
+      .catch(() => {
+        setIsSupported(false);
+        setSetupFailed(true);
+      });
   }, []);
 
   async function finish(biometricEnrolled: boolean) {
@@ -48,8 +59,26 @@ export default function BiometricSetupScreen() {
     if (result.success) {
       await finish(true);
     } else {
-      setError("We couldn't confirm your biometrics. You can try again or skip for now.");
+      setSetupFailed(true);
     }
+  }
+
+  if (setupFailed) {
+    return (
+      <StatusScreenLayout
+        icon="person-outline"
+        tone="error"
+        title="Biometric setup didn't work"
+        body="We couldn't enable Face ID / fingerprint login for Parc. This might be a device setting — you can still use your passcode to sign in, and try enabling biometrics later from Security settings."
+        showBackButton={false}
+        footer={
+          <>
+            {isSupported ? <Button label="Try again" onPress={() => setSetupFailed(false)} loading={isSubmitting} /> : null}
+            <Button label="Continue with passcode instead" variant="ghost" onPress={() => finish(false)} disabled={isSubmitting} />
+          </>
+        }
+      />
+    );
   }
 
   const styles = StyleSheet.create({

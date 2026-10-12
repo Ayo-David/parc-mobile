@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import type { ColorScale10, ColorScale11, HexColor } from "./types";
 
 /**
@@ -63,32 +62,64 @@ export const spacingScale = {
   huge: 40,
 } as const;
 
+/** All outlined form/button elements (buttons, inputs, checkboxes, radios) use a consistent 1.5px border in Figma — not RN's implicit 1px default. */
+export const borderWidths = {
+  hairline: 1,
+  thin: 1.5,
+  // Hero amount-input underline (Figma 237:12845).
+  strong: 2.5,
+  otpBox: 2,
+} as const;
+
 export const radiusScale = {
   xs: 4,
   sm: 8,
   md: 12,
-  input: 12,
+  // Confirmed 2026-09-20 on a live production input (226:1546) — the
+  // documentation-page Form Components specimen this was originally
+  // extracted from (12px) understated it; production screens use 14px.
+  input: 14,
   button: 14,
+  lg: 16,
   card: 20,
   sheet: 28,
   full: 9999,
+  // Added for the wallet Home screen (Figma 226:2865) — see types.ts RadiusScale.
+  logo: 7,
+  chip: 10,
+  avatar: 13,
+  quickAction: 18,
+  cardLg: 24,
+  pad: 17,
 } as const;
 
 export const iconSizes = {
+  // Inline glyphs beside 12–14px text in the onboarding/auth frames (e.g. the passcode hint chip and biometric link, Figma 226:1555).
+  inline: 14,
+  // Back-button arrow (Figma 226:1472).
+  nav: 18,
   compact: 20,
   default: 24,
   large: 28,
 } as const;
 
 export const controlHeights = {
+  // Figma BackButton (226:1471, reused on every light auth frame).
+  backButton: 44,
+  // In-app BackHeader (Figma 237:12833, Personal Loan and other dashboard flows).
+  backButtonCompact: 38,
   buttonLarge: 60,
   buttonMedium: 52,
   buttonSmall: 40,
+  authButton: 56,
   iconButton: 48,
   iconButtonLarge: 56,
+  // The circular status-icon badge on Liveness/result screens (Figma nodes 425:56, 426:158, 426:219, 426:268 and their siblings in later gap-closure phases).
+  iconButtonXl: 64,
   input: 56,
-  otpBoxWidth: 52,
-  otpBoxHeight: 60,
+  // Corrected 2026-09-20 against a live production OTP screen (226:2398-404).
+  otpBoxWidth: 44,
+  otpBoxHeight: 56,
   // WCAG/HIG accessibility floor. Not a Figma value and not tenant-overridable.
   minTouchTarget: 44,
 } as const;
@@ -102,16 +133,33 @@ export const motionTokens = {
 } as const;
 
 /**
- * Font family gap: Figma specifies "Plus Jakarta Sans" for all UI text,
- * including financial amounts and data (confirmed authoritative, superseding
- * the amount-xl token's original JetBrains Mono spec). No .ttf/.otf file
- * exists in this repository yet (no assets/fonts directory, no expo-font
- * useFonts call). Until the real file is added and loaded, this resolves to
- * the platform system font so the app renders correctly; swap this constant
- * once the font lands. See docs/theme/README.md.
+ * Real Plus Jakarta Sans, loaded via `@expo-google-fonts/plus-jakarta-sans`
+ * (`useFonts` call in `app/_layout.tsx`). React Native's custom-font model
+ * requires referencing the exact loaded family name per weight — a single
+ * "sans" family name plus a numeric `fontWeight` cannot select between
+ * separately-loaded static TTFs (this fails silently on Android in
+ * particular). `typography.ts` picks the matching weight constant below per
+ * style; there is no single generic `fontFamilies.sans` anymore.
+ *
+ * These string literals must match the font-loading keys passed to
+ * `useFonts` in `app/_layout.tsx` exactly (they're RN's runtime font-family
+ * lookup keys, not display names) — if a font fails to load or hasn't
+ * finished loading yet, RN falls back to the OS system font for that text
+ * automatically, so this is safe to reference immediately.
  */
-const systemFont = Platform.select({ ios: "System", android: "sans-serif", default: "System" }) as string;
-
 export const fontFamilies = {
-  sans: systemFont,
+  regular: "PlusJakartaSans_400Regular",
+  medium: "PlusJakartaSans_500Medium",
+  semiBold: "PlusJakartaSans_600SemiBold",
+  bold: "PlusJakartaSans_700Bold",
+  extraBold: "PlusJakartaSans_800ExtraBold",
+  /**
+   * Restored 2026-09-20 (design-system.md §8) — loaded via
+   * @expo-google-fonts/jetbrains-mono, wired in app/_layout.tsx's
+   * useFonts. Only for the dashboard-density `*Mono` typography styles
+   * (money figures on the wallet Home screen); `amountXl` stays Plus
+   * Jakarta Sans per the still-standing §3 decision for that token.
+   */
+  mono: "JetBrainsMono_700Bold",
+  monoExtraBold: "JetBrainsMono_800ExtraBold",
 };

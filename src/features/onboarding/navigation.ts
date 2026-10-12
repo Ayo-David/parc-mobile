@@ -1,10 +1,9 @@
 import { useRouter } from "expo-router";
 
-import { api } from "@/api/client";
 import type { OnboardingStep } from "@/api/schemas";
 import { queryClient } from "@/api/queryClient";
 
-import { ONBOARDING_STATUS_QUERY_KEY } from "./useOnboardingStatus";
+import { fetchOnboardingStatus, ONBOARDING_STATUS_QUERY_KEY } from "./useOnboardingStatus";
 
 export function useOnboardingStepRouter() {
   const router = useRouter();
@@ -53,7 +52,10 @@ export function useOnboardingStepRouter() {
 export function useAdvanceOnboarding() {
   const goToStep = useOnboardingStepRouter();
   return async function advance() {
-    const status = await queryClient.fetchQuery({ queryKey: ONBOARDING_STATUS_QUERY_KEY, queryFn: api.getOnboardingStatus });
-    goToStep(status.current_step);
+    // Same queryFn as useOnboardingStatus so the shared cache entry has one shape.
+    const status = await queryClient.fetchQuery({ queryKey: ONBOARDING_STATUS_QUERY_KEY, queryFn: fetchOnboardingStatus });
+    if (status) {
+      goToStep(status.current_step);
+    }
   };
 }

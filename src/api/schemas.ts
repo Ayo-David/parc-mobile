@@ -179,25 +179,68 @@ export const onboardingVerificationResultSchema = z.object({
 });
 export type OnboardingVerificationResult = z.infer<typeof onboardingVerificationResultSchema>;
 
-export const transactionStatusSchema = z.enum(["pending", "posted", "failed", "reversed"]);
+/**
+ * GET /v1/transactions — the Mobile BFF relays this unchanged to payment's
+ * `customer-payment-query-service.ts`, which returns raw `payment_transactions`
+ * rows (confirmed against the live server and parc-payment's
+ * db/schema/current.sql). The mobile-bff OpenAPI's TransactionPage
+ * (id/status/amount/occurred_at + cursor) does not match what is served.
+ * Enums mirror the Postgres enums exactly; `amount` is bigint minor units
+ * (kobo), serialized as a positive digit string. No cursor: one page of up
+ * to `page_size` (max 100) newest-first rows.
+ */
+export const transactionStatusSchema = z.enum(["PENDING", "PROCESSING", "SUCCESSFUL", "FAILED", "CANCELLED", "REVERSED", "EXPIRED"]);
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 
-export const transactionSchema = z.object({
-  id: z.string().uuid(),
-  status: transactionStatusSchema,
-  amount: moneySchema,
-  occurred_at: z.string(),
-});
-export type Transaction = z.infer<typeof transactionSchema>;
+export const paymentTypeSchema = z.enum([
+  "BANK_TRANSFER",
+  "INTERNAL_TRANSFER",
+  "ACCOUNT_FUNDING",
+  "WITHDRAWAL",
+  "REFUND",
+  "PAYOUT",
+  "PLATFORM_REVENUE_SETTLEMENT",
+  "PLATFORM_REVENUE_REFUND",
+  "BILL_PAYMENT",
+]);
+export type PaymentType = z.infer<typeof paymentTypeSchema>;
 
-export const transactionPageSchema = z.object({
-  items: z.array(transactionSchema),
-  page: z.object({
-    next_cursor: z.string().nullable(),
-    has_more: z.boolean(),
-  }),
+export const paymentTransactionRowSchema = z.object({
+  id: z.string().uuid(),
+  payment_type: paymentTypeSchema,
+  amount: z.string().regex(/^(0|[1-9][0-9]*)$/),
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  status: transactionStatusSchema,
+  reference: z.string(),
+  narration: z.string().nullable(),
+  requested_at: z.string(),
+  processed_at: z.string().nullable(),
 });
-export type TransactionPage = z.infer<typeof transactionPageSchema>;
+export type PaymentTransactionRow = z.infer<typeof paymentTransactionRowSchema>;
+
+export const paymentTransactionListSchema = z.object({
+  items: z.array(paymentTransactionRowSchema),
+});
+
+/** The app's own transaction model, mapped from PaymentTransactionRow in api/client.ts. */
+export interface Transaction {
+  id: string;
+  type: PaymentType;
+  /** Whether money entered (credit) or left (debit) the customer's wallet. */
+  direction: "credit" | "debit";
+  status: TransactionStatus;
+  /** Always positive — `direction` carries the sign. */
+  amount: Money;
+  reference: string;
+  narration: string | null;
+  /** processed_at when settled, otherwise requested_at. */
+  occurred_at: string;
+}
+
+export interface TransactionPage {
+  items: Transaction[];
+  page: { next_cursor: string | null; has_more: boolean };
+}
 
 /**
  * POST /v1/statements has a concrete, typed request body, but neither

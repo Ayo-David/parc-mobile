@@ -35,6 +35,8 @@ export interface TrackedRecurringPlan {
   currency: string;
   frequency: string;
   nextExecutionDate: string;
+  /** Real, confirmed field on `RecurringPlanInput` (savings contract) — tags which goal this plan's contributions apply to. Optional since a plan can also just top up the general savings account with no goal attached. */
+  goalId?: string;
 }
 
 interface SavingsRecordsState {

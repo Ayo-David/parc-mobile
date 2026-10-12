@@ -1,18 +1,14 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { api } from "@/api/client";
-import type { TransactionStatus } from "@/api/schemas";
 
-export interface TransactionFilters {
-  status?: TransactionStatus;
-  dateFrom?: string;
-  dateTo?: string;
-}
+/** Payment's maximum page_size — the whole history the server will return in one call. */
+export const TRANSACTION_PAGE_SIZE = 100;
 
-export function useTransactions(filters: TransactionFilters = {}) {
+export function useTransactions() {
   return useInfiniteQuery({
-    queryKey: ["transactions", filters],
-    queryFn: ({ pageParam }: { pageParam: string | undefined }) => api.getTransactions({ ...filters, pageCursor: pageParam, pageSize: 20 }),
+    queryKey: ["transactions"],
+    queryFn: () => api.getTransactions({ pageSize: TRANSACTION_PAGE_SIZE }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => (lastPage.page.has_more ? (lastPage.page.next_cursor ?? undefined) : undefined),
   });

@@ -15,7 +15,7 @@ export function TextField({ state = "default", editable = true, ...inputProps }:
     input: {
       height: theme.control.input,
       borderRadius: theme.radii.input,
-      borderWidth: 1,
+      borderWidth: theme.borderWidth.thin,
       borderColor: recipe.borderColor,
       backgroundColor: recipe.backgroundColor,
       color: recipe.textColor,

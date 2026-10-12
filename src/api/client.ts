@@ -10,6 +10,7 @@ import { reportError } from "@/observability/reportError";
 import { useSessionStore } from "@/state/stores/sessionStore";
 
 import { ApiError, categorizeStatus, extractServerMessage } from "./errors";
+import { mapPaymentTransaction } from "./transactionMapping";
 import {
   authResultSchema,
   billPaymentSchema,
@@ -48,7 +49,7 @@ import {
   savingsSummarySchema,
   tokenPairSchema,
   transactionAuthorizationSchema,
-  transactionPageSchema,
+  paymentTransactionListSchema,
   transferSchema,
   walletFundingDetailsSchema,
   walletSummarySchema,
@@ -153,6 +154,10 @@ httpClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
  * call, this exchanges the stored refresh token for a new pair, persists
  * it, and lets the response interceptor retry the original request once.
  * Session tenantId is preserved (refresh doesn't return one).
+ *
+ * Only an explicit rejection from the auth service ends the session; a
+ * network failure/timeout leaves it intact (returns false) so a connectivity
+ * blip doesn't log the customer out.
  */
 async function attemptSessionRefresh(): Promise<boolean> {
   const session = useSessionStore.getState().session;
@@ -175,11 +180,33 @@ async function attemptSessionRefresh(): Promise<boolean> {
     await tokenStorage.save(stored);
     useSessionStore.getState().setSession(stored);
     return true;
-  } catch {
-    await tokenStorage.clear();
-    useSessionStore.getState().clearSession();
+  } catch (error) {
+    // The refresh call runs through this client's own response interceptor,
+    // so failures arrive here already normalized into ApiError.
+    const isConnectivityFailure = error instanceof ApiError && error.category === "network";
+    if (!isConnectivityFailure) {
+      await tokenStorage.clear();
+      useSessionStore.getState().setSessionExpired(true);
+      useSessionStore.getState().clearSession();
+    }
     return false;
   }
+}
+
+/**
+ * auth-customer rotates refresh tokens and treats any reuse of a rotated one
+ * as theft: it revokes the whole token family, including the pair the first
+ * refresh just issued (session-service.ts `refresh` → REFRESH_TOKEN_REUSE).
+ * Screens fire several requests at once, so when the access token expires
+ * they all 401 together — each must share ONE refresh, never start its own.
+ */
+let refreshInFlight: Promise<boolean> | null = null;
+
+export function refreshSessionOnce(): Promise<boolean> {
+  refreshInFlight ??= attemptSessionRefresh().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
 }
 
 function normalizeAxiosError(error: AxiosError): ApiError {
@@ -218,16 +245,24 @@ httpClient.interceptors.response.use(
     const config = error.config;
     if (error.response?.status === 401 && config && config.parcRequiresAuth !== false && !config.parcRetried) {
       config.parcRetried = true;
-      const refreshed = await attemptSessionRefresh();
+      // If the session already moved on (another request refreshed while this
+      // one was in flight), just retry with the current token — refreshing
+      // again would replay a rotated refresh token.
+      const current = useSessionStore.getState().session;
+      const sentAuthorization = config.headers.get("authorization");
+      const refreshed = current && sentAuthorization !== `Bearer ${current.accessToken}` ? true : await refreshSessionOnce();
       if (refreshed) {
         return httpClient.request(config);
       }
     }
 
     const normalized = normalizeAxiosError(error);
-    if (normalized.category === "network" || normalized.category === "dependency" || normalized.category === "unknown") {
+    const isServerOrTransportFailure = normalized.status === null || normalized.status >= 500;
+    if (isServerOrTransportFailure && (normalized.category === "network" || normalized.category === "dependency" || normalized.category === "unknown")) {
       // Expected user-facing conditions (validation/auth/conflict/rate-limit)
-      // are not reported — only genuinely unexpected failures are.
+      // and other 4xx answers (e.g. 404 ONBOARDING_NOT_FOUND, which
+      // useOnboardingStatus treats as normal) are not reported — only
+      // transport failures and 5xx are.
       reportError(normalized, { path: config?.url, method: config?.method, status: normalized.status });
     }
     return Promise.reject(normalized);
@@ -264,6 +299,16 @@ function parseWithSchema<T>(schema: z.ZodType<T>, operationName: string) {
     }
     return result.data;
   };
+}
+
+/**
+ * Prose-only list endpoints. The live server wraps them as `{ items: [...] }`
+ * (confirmed 2026-10-12 for notification preferences, notifications, FAQs);
+ * a bare array is still accepted in case a relay returns one.
+ */
+function listItems(body: unknown): Record<string, unknown>[] {
+  const list = Array.isArray(body) ? body : typeof body === "object" && body !== null && Array.isArray((body as { items?: unknown }).items) ? (body as { items: unknown[] }).items : [];
+  return list.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null);
 }
 
 function ignoreBody(): void {
@@ -370,7 +415,7 @@ export const api = {
 
   /** No response schema is documented for the list — returned as a raw array for the screen to render defensively. */
   async getNotificationPreferences(): Promise<Array<Record<string, unknown>>> {
-    return request({ method: "GET", path: "/v1/notification-preferences" }, (body) => (Array.isArray(body) ? (body as Array<Record<string, unknown>>) : []));
+    return request({ method: "GET", path: "/v1/notification-preferences" }, listItems);
   },
 
   async updateNotificationPreference(params: { category: string; pushEnabled: boolean; smsEnabled: boolean; emailEnabled: boolean; inAppEnabled: boolean }): Promise<void> {
@@ -392,24 +437,36 @@ export const api = {
 
   /** No response schema documented for the FAQ catalogue — returned as a raw array. */
   async getFaqs(): Promise<Array<Record<string, unknown>>> {
-    return request({ method: "GET", path: "/v1/support/faqs" }, (body) => (Array.isArray(body) ? (body as Array<Record<string, unknown>>) : []));
+    return request({ method: "GET", path: "/v1/support/faqs" }, listItems);
   },
 
   /** No response schema documented for the ticket list — returned as a raw array. */
   async getSupportTickets(): Promise<Array<Record<string, unknown>>> {
-    return request({ method: "GET", path: "/v1/support/tickets" }, (body) => (Array.isArray(body) ? (body as Array<Record<string, unknown>>) : []));
+    return request({ method: "GET", path: "/v1/support/tickets" }, listItems);
   },
 
   /**
-   * Request body is an opaque `JsonCommand` in the mobile-bff contract — no
-   * field-level schema exists anywhere, unlike most other "undocumented"
-   * gaps this session where a more detailed schema existed in a downstream
-   * service's own contract. `subject`/`message` is a best-effort guess at
-   * a reasonable shape, not a confirmed one.
+   * The mobile-bff's own contract documents this as an opaque `JsonCommand`
+   * (MOB-13's original note), but the mobile-bff relays it unmodified
+   * straight through to tenant-admin's internal
+   * `POST /internal/v1/customers/{customerId}/support/tickets`
+   * (confirmed by reading `parc-mobile-bff/src/app.ts` directly — a plain
+   * passthrough relay, no body transform), and THAT endpoint's request
+   * schema is fully documented: `createCustomerSupportTicketInternal`
+   * requires `subject`/`description` and accepts an optional
+   * `category_id` (uuid). `description` (not `message`) is the real field
+   * name — confirmed and corrected in MOB-18, since the field name
+   * mismatch this method previously guessed would have silently failed
+   * validation against the real backend.
    */
-  async createSupportTicket(params: { subject: string; message: string }): Promise<Record<string, unknown>> {
+  async createSupportTicket(params: { subject: string; description: string; categoryId?: string }): Promise<Record<string, unknown>> {
     return request(
-      { method: "POST", path: "/v1/support/tickets", headers: { "idempotency-key": randomUUID() }, body: { subject: params.subject, message: params.message } },
+      {
+        method: "POST",
+        path: "/v1/support/tickets",
+        headers: { "idempotency-key": randomUUID() },
+        body: { subject: params.subject, description: params.description, ...(params.categoryId ? { category_id: params.categoryId } : {}) },
+      },
       (body) => (typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {}),
     );
   },
@@ -480,8 +537,22 @@ export const api = {
     return request({ method: "POST", path: "/v1/onboarding/email/verify", body: { challenge_id: params.challengeId, code: params.code } }, ignoreBody);
   },
 
-  async submitOnboardingIdentity(params: { ninValue: string; consentId: string }): Promise<void> {
-    return request({ method: "POST", path: "/v1/onboarding/identity", body: { identity_type: "NIN", identity_value: params.ninValue, consent_id: params.consentId } }, ignoreBody);
+  /**
+   * RESOLVED (MOB-23): this previously discarded the response with
+   * `ignoreBody`, treating the endpoint as if it were one of the ~10
+   * onboarding operations with no documented schema. It isn't — the real
+   * `auth-customer` contract documents a `202` response with the exact
+   * same `OnboardingVerificationResult` schema `face-verification` uses
+   * (`{verification: KycVerification, onboarding: OnboardingState}`), so
+   * a failed/manual-review NIN check was previously indistinguishable
+   * from success at the type level, even though the server was already
+   * reporting it correctly.
+   */
+  async submitOnboardingIdentity(params: { ninValue: string; consentId: string }): Promise<OnboardingVerificationResult> {
+    return request(
+      { method: "POST", path: "/v1/onboarding/identity", body: { identity_type: "NIN", identity_value: params.ninValue, consent_id: params.consentId } },
+      parseWithSchema(onboardingVerificationResultSchema, "onboarding identity verification"),
+    );
   },
 
   /**
@@ -532,14 +603,18 @@ export const api = {
     return request({ method: "POST", path: "/v1/onboarding/complete", body: { biometric_enrolled: params.biometricEnrolled } }, ignoreBody);
   },
 
-  async getTransactions(params: { pageSize?: number; pageCursor?: string; status?: TransactionStatus; dateFrom?: string; dateTo?: string } = {}): Promise<TransactionPage> {
+  /**
+   * Payment serves one newest-first page of up to `page_size` (max 100) rows
+   * and ignores any cursor/status/date filters, so none are sent — screens
+   * filter the loaded list. `has_more` is always false (no cursor exists).
+   */
+  async getTransactions(params: { pageSize?: number } = {}): Promise<TransactionPage> {
     const query: Record<string, string> = {};
     if (params.pageSize !== undefined) query.page_size = String(params.pageSize);
-    if (params.pageCursor) query.page_cursor = params.pageCursor;
-    if (params.status) query.status = params.status;
-    if (params.dateFrom) query.date_from = params.dateFrom;
-    if (params.dateTo) query.date_to = params.dateTo;
-    return request({ method: "GET", path: "/v1/transactions", query }, parseWithSchema(transactionPageSchema, "transactions"));
+    return request({ method: "GET", path: "/v1/transactions", query }, (body) => {
+      const list = parseWithSchema(paymentTransactionListSchema, "transactions")(body);
+      return { items: list.items.map(mapPaymentTransaction), page: { next_cursor: null, has_more: false } };
+    });
   },
 
   /**
@@ -613,6 +688,34 @@ export const api = {
         const feeMinor = typeof record.fee_minor === "string" ? record.fee_minor : null;
         return { quoteId, feeMinor };
       },
+    );
+  },
+
+  // --- Beneficiaries (MOB-19) ---
+
+  /**
+   * Confirmed real (`parc-contracts/openapi/payment/v1/openapi.yaml`,
+   * `GET /v1/beneficiaries`) — previously documented as entirely missing
+   * from the Mobile BFF allowlist (PLAN.md "Real blockers"), now
+   * re-verified present. The request (`kind` query param) is fully
+   * documented, but the response is prose-only ("Customer-owned
+   * beneficiaries") — returned as a raw array, same defensive pattern as
+   * FAQs/tickets, not a guessed schema.
+   */
+  async getBeneficiaries(kind?: "all" | "recent" | "favourite"): Promise<Array<Record<string, unknown>>> {
+    return request({ method: "GET", path: "/v1/beneficiaries", query: kind ? { kind } : undefined }, listItems);
+  },
+
+  /** Confirmed real request shape (`bank_code`/`account_number`/`name`, all required); response is prose-only ("Beneficiary created") — probed defensively for an id. */
+  async createBeneficiary(params: { bankCode: string; accountNumber: string; name: string; idempotencyKey: string }): Promise<Record<string, unknown>> {
+    return request(
+      {
+        method: "POST",
+        path: "/v1/beneficiaries",
+        headers: { "idempotency-key": params.idempotencyKey },
+        body: { bank_code: params.bankCode, account_number: params.accountNumber, name: params.name },
+      },
+      (body) => (typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {}),
     );
   },
 

@@ -39,3 +39,31 @@ export function parseMajorUnitsToMinor(input: string): string | null {
   const combined = `${wholePart}${paddedFraction}`.replace(/^0+(?=\d)/, "");
   return combined;
 }
+
+const COMPACT_STEPS: { divisor: bigint; suffix: string }[] = [
+  { divisor: 1_000_000_000n, suffix: "B" },
+  { divisor: 1_000_000n, suffix: "M" },
+  { divisor: 1_000n, suffix: "k" },
+];
+
+/**
+ * Short display form for headline limits ("₦500k", "₦2M", "₦1.5M"), as on
+ * Figma's loan product tiles (236:11557 "Up to ₦100k"). Display only — one
+ * decimal at most, truncated (never rounded up, so a limit is never
+ * overstated), BigInt arithmetic throughout.
+ */
+export function formatMoneyCompact(money: Money): string {
+  const isNegative = money.amount_minor.startsWith("-");
+  const digits = isNegative ? money.amount_minor.slice(1) : money.amount_minor;
+  const major = BigInt(digits) / 100n;
+  const symbol = CURRENCY_SYMBOLS[money.currency] ?? `${money.currency} `;
+  const sign = isNegative ? "-" : "";
+  for (const { divisor, suffix } of COMPACT_STEPS) {
+    if (major >= divisor) {
+      const whole = major / divisor;
+      const tenth = ((major % divisor) * 10n) / divisor;
+      return `${sign}${symbol}${whole}${tenth > 0n ? `.${tenth}` : ""}${suffix}`;
+    }
+  }
+  return `${sign}${symbol}${major}`;
+}

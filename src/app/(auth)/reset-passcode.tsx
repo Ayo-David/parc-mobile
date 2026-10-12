@@ -1,15 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import { useBootstrap } from "@/api/queries/useBootstrap";
+import { BackButton } from "@/components/BackButton/BackButton";
 import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
 import { OtpInput } from "@/components/OtpInput/OtpInput";
 import { PinPad } from "@/components/PinPad/PinPad";
 import { Button } from "@/components/Button/Button";
+import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
 const CODE_LENGTH = 6;
@@ -86,6 +89,36 @@ export default function ResetPasscodeScreen() {
 
   const styles = StyleSheet.create({
     hint: { ...theme.typography.bodySmall, color: theme.colors.textMuted, textAlign: "center" },
+    header: { paddingTop: theme.spacing.md },
+    banner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      backgroundColor: theme.components.status.success.backgroundColor,
+      borderRadius: theme.radii.button,
+      paddingHorizontal: theme.spacing.md + 2,
+      paddingVertical: theme.spacing.sm + 3,
+      marginTop: theme.spacing.sm + 2,
+    },
+    bannerText: {
+      ...theme.typography.text13SemiBold,
+      color: theme.colors.successStrong,
+    },
+    body: { paddingTop: theme.semanticSpacing.form + theme.spacing.xs },
+    title: { ...theme.typography.h2, color: theme.colors.textPrimary },
+    subtitle: { ...theme.typography.text15Regular, color: theme.colors.textMuted, marginTop: theme.spacing.sm + 2 },
+    errorText: { ...theme.typography.bodySmall, color: theme.colors.error, marginTop: theme.spacing.sm },
+    hintRow: { alignItems: "center", marginTop: theme.semanticSpacing.section, marginBottom: theme.semanticSpacing.form },
+    hintChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      backgroundColor: theme.colors.background,
+      borderRadius: theme.radii.md,
+      paddingHorizontal: theme.spacing.md + 2,
+      paddingVertical: theme.spacing.sm + 1,
+    },
+    hintChipText: { ...theme.typography.caption, color: theme.colors.textMuted },
   });
 
   if (step === "code") {
@@ -98,9 +131,27 @@ export default function ResetPasscodeScreen() {
 
   if (step === "new-passcode") {
     return (
-      <FormScreenLayout title="Create a new passcode" errorMessage={error}>
-        <PinPad length={PASSCODE_LENGTH} value={newPasscode} onChange={handleNewPasscodeChange} />
-      </FormScreenLayout>
+      <ScreenContainer>
+        <View style={styles.header}>
+          <BackButton />
+        </View>
+        <View style={styles.banner}>
+          <Ionicons name="checkmark-circle" size={14} color={theme.colors.successStrong} />
+          <Text style={styles.bannerText}>Identity verified. Set your new passcode.</Text>
+        </View>
+        <View style={styles.body}>
+          <Text style={styles.title}>Set a new{"\n"}Passcode.</Text>
+          <Text style={styles.subtitle}>Choose a passcode you&apos;ll remember</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <View style={styles.hintRow}>
+            <View style={styles.hintChip}>
+              <Ionicons name="shield-checkmark-outline" size={13} color={theme.colors.textMuted} />
+              <Text style={styles.hintChipText}>Never share your passcode with anyone</Text>
+            </View>
+          </View>
+          <PinPad length={PASSCODE_LENGTH} value={newPasscode} onChange={handleNewPasscodeChange} />
+        </View>
+      </ScreenContainer>
     );
   }
 

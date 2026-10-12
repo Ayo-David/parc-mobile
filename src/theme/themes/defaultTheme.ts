@@ -1,5 +1,5 @@
 import { buildComponentStyles } from "../componentStyles";
-import { elevation, icon, control, motion, radii, semanticSpacing, spacing } from "../spacing";
+import { borderWidth, elevation, icon, control, motion, radii, semanticSpacing, spacing } from "../spacing";
 import { lightColors } from "../tokens";
 import { typography } from "../typography";
 import type { ParcTheme } from "../types";
@@ -14,6 +14,7 @@ export const defaultTheme: ParcTheme = {
   elevation,
   icon,
   control,
+  borderWidth,
   motion,
   components: buildComponentStyles(lightColors),
 };

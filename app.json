@@ -41,7 +41,13 @@
         }
       ],
       "expo-secure-store",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Parc needs camera access to verify your identity with a quick face scan."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

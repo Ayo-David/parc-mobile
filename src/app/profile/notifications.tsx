@@ -1,5 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -31,6 +33,7 @@ function asBoolean(value: unknown, fallback: boolean): boolean {
  */
 export default function NotificationsScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const preferences = useNotificationPreferences();
   const [pendingCategory, setPendingCategory] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +61,15 @@ export default function NotificationsScreen() {
 
   const styles = StyleSheet.create({
     content: { paddingTop: theme.semanticSpacing.section, gap: theme.semanticSpacing.form, paddingBottom: theme.semanticSpacing.section },
+    primingBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md,
+      backgroundColor: theme.colors.secondarySubtle,
+      borderRadius: theme.radii.card,
+      padding: theme.semanticSpacing.form,
+    },
+    primingText: { ...theme.typography.label, color: theme.colors.textPrimary, flex: 1 },
     card: { backgroundColor: theme.colors.surface, borderRadius: theme.radii.card, padding: theme.semanticSpacing.card, gap: theme.semanticSpacing.component, ...theme.elevation.sm },
     categoryLabel: { ...theme.typography.h4, color: theme.colors.textPrimary },
     channelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
@@ -82,6 +94,11 @@ export default function NotificationsScreen() {
   return (
     <ScreenContainer>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Pressable style={styles.primingBanner} onPress={() => router.push("/profile/notification-priming")}>
+          <Ionicons name="notifications-outline" size={theme.icon.default} color={theme.colors.secondary} />
+          <Text style={styles.primingText}>Turn on push notifications</Text>
+          <Ionicons name="chevron-forward" size={theme.icon.compact} color={theme.colors.textMuted} />
+        </Pressable>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {entries.length === 0 ? (
           <Text style={styles.emptyText}>No notification categories found.</Text>

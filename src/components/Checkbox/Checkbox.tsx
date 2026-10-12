@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/theme";
@@ -5,9 +6,10 @@ import { useTheme } from "@/theme";
 export interface CheckboxProps {
   checked: boolean;
   onToggle: () => void;
-  label: string;
+  label: ReactNode;
 }
 
+/** Box size/radius confirmed 2026-09-20 against register-phone (322:340): 22x22, radius 7 (reuses `radii.logo`, same value) — corrects the long-flagged "close-but-not-exact" gap (design-system.md §9), which had it at 24/4. */
 export function Checkbox({ checked, onToggle, label }: CheckboxProps) {
   const { theme } = useTheme();
 
@@ -19,10 +21,10 @@ export function Checkbox({ checked, onToggle, label }: CheckboxProps) {
       minHeight: theme.control.minTouchTarget,
     },
     box: {
-      width: theme.icon.default,
-      height: theme.icon.default,
-      borderRadius: theme.radii.xs,
-      borderWidth: 1,
+      width: 22,
+      height: 22,
+      borderRadius: theme.radii.logo,
+      borderWidth: theme.borderWidth.thin,
       alignItems: "center",
       justifyContent: "center",
       marginTop: theme.spacing.xs,

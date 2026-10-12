@@ -5,7 +5,7 @@ import { useTheme } from "@/theme";
 
 /**
  * Minimal themed stand-in for tabs not yet built this sprint (Payments,
- * Loans, Savings, Me — PLAN.md Part 6 backlog). Exists so GlassTabBar has
+ * Loans, Savings, Me — PLAN.md Part 6 backlog). Exists so the tab bar has
  * real, navigable screens to demonstrate rather than dead links.
  */
 export function PlaceholderScreen({ title }: { title: string }) {
@@ -28,7 +28,7 @@ export function PlaceholderScreen({ title }: { title: string }) {
   });
 
   return (
-    <ScreenContainer hasFloatingTabBar>
+    <ScreenContainer>
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>Coming soon.</Text>

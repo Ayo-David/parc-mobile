@@ -10,8 +10,14 @@ import type { RepaymentSource } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
 import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
 import { TextField } from "@/components/TextField/TextField";
+import { TransactionResultLayout } from "@/components/TransactionResultLayout/TransactionResultLayout";
 import { useTheme } from "@/theme";
 import { formatMoney, parseMajorUnitsToMinor } from "@/utils/money";
+
+/** `CustomerRepaymentRequest.status` has no confirmed enum anywhere in the Lending contract — this is a disclosed, case-insensitive heuristic, not a confirmed literal match. */
+function looksLikeFailure(status: string): boolean {
+  return /fail|declin|reject/i.test(status);
+}
 
 const SOURCES: Array<{ label: string; value: RepaymentSource }> = [
   { label: "Wallet", value: "wallet" },
@@ -21,12 +27,18 @@ const SOURCES: Array<{ label: string; value: RepaymentSource }> = [
 ];
 
 /**
- * Figma "Loan Repayment Screen". Unlike transfers/bills, repayment doesn't
- * need a `source_account_id` — funding source is the `source` enum
- * (confirmed against the Lending contract), and a PIN-authorization token
- * is optional at submit time, not required, so this doesn't use
- * TransactionPinSheet. RESOLVED: both the quote and submission responses
- * are now fully typed (`CustomerRepaymentQuote`/`CustomerRepaymentRequest`).
+ * Figma "Loan Repayment Screen" plus, for the first time, its real
+ * "Loan 04 — Repayment Failed" sibling (node 431:400, missing-mobile.md
+ * §0/§6). Unlike transfers/bills, repayment doesn't need a
+ * `source_account_id` — funding source is the `source` enum (confirmed
+ * against the Lending contract), and a PIN-authorization token is optional
+ * at submit time, not required, so this doesn't use TransactionPinSheet.
+ * Previously a successful `submitLoanRepayment` call of ANY resulting
+ * status was treated as success and never checked `request.status` at
+ * all — the same "designed once, never composed" gap MOB-15 fixed for
+ * Transfers/Bills. `status` has no confirmed enum anywhere in the Lending
+ * contract, so `looksLikeFailure()` is a disclosed heuristic, not a
+ * confirmed literal match.
  */
 export default function LoanRepaymentScreen() {
   const { theme } = useTheme();
@@ -37,7 +49,7 @@ export default function LoanRepaymentScreen() {
   const [repaymentQuoteId, setRepaymentQuoteId] = useState<string | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDone, setIsDone] = useState(false);
+  const [outcome, setOutcome] = useState<"succeeded" | "failed" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const amountMinor = parseMajorUnitsToMinor(amountNaira) ?? "";
@@ -61,8 +73,8 @@ export default function LoanRepaymentScreen() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await api.submitLoanRepayment({ loanId, repaymentQuoteId, correlationId: randomUUID(), idempotencyKey: createIdempotencyKey() });
-      setIsDone(true);
+      const request = await api.submitLoanRepayment({ loanId, repaymentQuoteId, correlationId: randomUUID(), idempotencyKey: createIdempotencyKey() });
+      setOutcome(looksLikeFailure(request.status) ? "failed" : "succeeded");
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : "We couldn't confirm this repayment went through. Please check your loan balance before trying again.");
     } finally {
@@ -75,14 +87,28 @@ export default function LoanRepaymentScreen() {
     chip: { borderRadius: theme.radii.full, borderWidth: 1, paddingHorizontal: theme.semanticSpacing.form, paddingVertical: theme.spacing.xs },
     chipLabel: { ...theme.typography.label },
     quoteText: { ...theme.typography.bodyMedium, color: theme.colors.textPrimary },
-    successText: { ...theme.typography.h3, color: theme.colors.success, textAlign: "center" },
   });
 
-  if (isDone) {
+  if (outcome === "succeeded") {
     return (
-      <FormScreenLayout title="Repayment submitted" footer={<Button label="Done" onPress={() => router.replace("/(tabs)/loans")} />}>
-        <Text style={styles.successText}>Your repayment has been submitted.</Text>
-      </FormScreenLayout>
+      <TransactionResultLayout
+        tone="success"
+        title="Repayment Successful!"
+        money={{ amount_minor: amountMinor, currency: "NGN" }}
+        primaryAction={{ label: "Done", onPress: () => router.replace("/(tabs)/loans") }}
+      />
+    );
+  }
+
+  if (outcome === "failed") {
+    return (
+      <TransactionResultLayout
+        tone="error"
+        title="Repayment Failed"
+        money={{ amount_minor: amountMinor, currency: "NGN" }}
+        detailLines={[`We couldn't process your repayment from your ${source.replace("_", " ")}.`, "Your loan balance hasn't changed."]}
+        primaryAction={{ label: "Try again", onPress: () => setOutcome(null) }}
+      />
     );
   }
 

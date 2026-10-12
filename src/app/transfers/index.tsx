@@ -7,6 +7,7 @@ import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import { Button } from "@/components/Button/Button";
 import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
+import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
 import { TextField } from "@/components/TextField/TextField";
 import { useTransferDraftStore } from "@/features/transfers/transferDraftStore";
 import { useTheme } from "@/theme";
@@ -21,6 +22,7 @@ export default function TransferAccountEntryScreen() {
   const [localAccountNumber, setLocalAccountNumber] = useState(accountNumber ?? "");
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accountNotFound, setAccountNotFound] = useState(false);
 
   const isValidAccountNumber = ACCOUNT_NUMBER_PATTERN.test(localAccountNumber);
 
@@ -30,6 +32,7 @@ export default function TransferAccountEntryScreen() {
     }
     setIsVerifying(true);
     setError(null);
+    setAccountNotFound(false);
     api
       .enquireTransferAccountName({ bankCode, accountNumber: localAccountNumber, idempotencyKey: createIdempotencyKey() })
       .then(({ accountName: verifiedName, enquiryToken }) => {
@@ -39,7 +42,13 @@ export default function TransferAccountEntryScreen() {
           setError("We couldn't confirm this account (undocumented API response). Please check the details.");
         }
       })
-      .catch((enquiryError) => setError(enquiryError instanceof ApiError ? enquiryError.message : "We couldn't verify this account. Please check the details."))
+      .catch((enquiryError) => {
+        if (enquiryError instanceof ApiError && enquiryError.category === "validation") {
+          setAccountNotFound(true);
+        } else {
+          setError(enquiryError instanceof ApiError ? enquiryError.message : "We couldn't verify this account. Please check the details.");
+        }
+      })
       .finally(() => setIsVerifying(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localAccountNumber, bankCode]);
@@ -64,6 +73,19 @@ export default function TransferAccountEntryScreen() {
       color: theme.colors.success,
     },
   });
+
+  if (accountNotFound) {
+    return (
+      <StatusScreenLayout
+        icon="person-remove-outline"
+        tone="error"
+        title="We couldn't find that account"
+        body={`Double-check the account number and bank — ${localAccountNumber} doesn't match a valid account at ${bankName ?? "the selected bank"}.`}
+        onBack={() => setAccountNotFound(false)}
+        footer={<Button label="Edit details" onPress={() => setAccountNotFound(false)} />}
+      />
+    );
+  }
 
   return (
     <FormScreenLayout

@@ -12,6 +12,7 @@ import { useSavingsSummary } from "@/api/queries/useSavingsSummary";
 import type { RecurringPlanFrequency } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
 import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
+import { PickerField } from "@/components/PickerField/PickerField";
 import { TextField } from "@/components/TextField/TextField";
 import { useSavingsRecordsStore } from "@/state/stores/savingsRecordsStore";
 import { useTheme } from "@/theme";
@@ -23,16 +24,29 @@ const FREQUENCIES: Array<{ label: string; value: RecurringPlanFrequency }> = [
   { label: "Monthly", value: "MONTHLY" },
 ];
 
-/** Figma "Auto-save" / recurring contribution plan. Uses the customer's existing ORDINARY savings account, same as Create Goal. */
+/**
+ * Figma "Savings 01 — Set Up Auto-save" (node 431:39, missing-mobile.md
+ * §7). Uses the customer's existing ORDINARY savings account, same as
+ * Create Goal. The "Save towards" goal picker is now wired to a real,
+ * confirmed contract field — `RecurringPlanInput.goal_id` (optional,
+ * `parc-contracts/openapi/savings/v1/openapi.yaml`) — not a cosmetic
+ * label; PLAN.md's open question about whether recurring plans can
+ * reference a goal is resolved: they can. There's still no `GET` anywhere
+ * that reads a goal's contributions back (PLAN.md "Savings contract
+ * gaps"), so this only lets the Goal Detail screen show "this goal has an
+ * auto-save plan" — it doesn't unlock a per-goal balance.
+ */
 export default function CreateRecurringPlanScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const bootstrap = useBootstrap();
   const referenceData = useOnboardingReferenceData(bootstrap.data?.tenant_id);
   const summary = useSavingsSummary();
+  const goals = useSavingsRecordsStore((state) => state.goals);
   const addRecurringPlan = useSavingsRecordsStore((state) => state.addRecurringPlan);
   const [amountNaira, setAmountNaira] = useState("");
   const [frequency, setFrequency] = useState<RecurringPlanFrequency>("MONTHLY");
+  const [goalId, setGoalId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +75,7 @@ export default function CreateRecurringPlanScreen() {
         consentReference,
         correlationId: randomUUID(),
         idempotencyKey: createIdempotencyKey(),
+        ...(goalId ? { goalId } : {}),
       });
       addRecurringPlan({
         id: result.recurring_plan_id,
@@ -69,8 +84,12 @@ export default function CreateRecurringPlanScreen() {
         currency: result.currency,
         frequency: result.frequency,
         nextExecutionDate: result.next_execution_date,
+        ...(goalId ? { goalId } : {}),
       });
-      router.replace("/(tabs)/savings");
+      router.replace({
+        pathname: "/savings/success",
+        params: { title: "Auto-save Set Up!", amountMinor: result.amount_minor, currency: result.currency, detail: `${result.frequency.charAt(0)}${result.frequency.slice(1).toLowerCase()} contribution starting ${result.next_execution_date}` },
+      });
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
     } finally {
@@ -81,7 +100,7 @@ export default function CreateRecurringPlanScreen() {
   const styles = StyleSheet.create({
     frequencyRow: { flexDirection: "row", gap: theme.spacing.sm },
     chip: { flex: 1, borderRadius: theme.radii.full, borderWidth: 1, paddingVertical: theme.semanticSpacing.form, alignItems: "center" },
-    chipLabel: { ...theme.typography.label },
+    chipLabel: { ...theme.typography.text13Bold },
   });
 
   if (!summary.isLoading && !savingsAccount) {
@@ -116,6 +135,14 @@ export default function CreateRecurringPlanScreen() {
           );
         })}
       </View>
+      {goals.length > 0 ? (
+        <PickerField
+          placeholder="Save towards (optional)"
+          options={goals.map((goal) => ({ value: goal.id, label: goal.name }))}
+          selectedValue={goalId}
+          onSelect={(option) => setGoalId(option.value)}
+        />
+      ) : null}
       <TextField value={startDate} onChangeText={setStartDate} placeholder="Start date (YYYY-MM-DD)" keyboardType="numbers-and-punctuation" />
     </FormScreenLayout>
   );

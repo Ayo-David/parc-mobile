@@ -1,4 +1,4 @@
-import { formatMoney, parseMajorUnitsToMinor } from "../money";
+import { formatMoney, parseMajorUnitsToMinor, formatMoneyCompact } from "../money";
 
 describe("formatMoney", () => {
   it("formats NGN with the naira symbol and thousands separators", () => {
@@ -39,5 +39,19 @@ describe("parseMajorUnitsToMinor", () => {
     expect(parseMajorUnitsToMinor("abc")).toBeNull();
     expect(parseMajorUnitsToMinor("-100")).toBeNull();
     expect(parseMajorUnitsToMinor("100.999")).toBeNull();
+  });
+});
+
+describe("formatMoneyCompact", () => {
+  it.each([
+    ["10000000", "₦100k"],
+    ["50000000", "₦500k"],
+    ["200000000", "₦2M"],
+    ["150000000", "₦1.5M"],
+    ["199999999", "₦1.9M"],
+    ["100000", "₦1k"],
+    ["50000", "₦500"],
+  ])("formats %s kobo as %s", (amountMinor, expected) => {
+    expect(formatMoneyCompact({ amount_minor: amountMinor, currency: "NGN" })).toBe(expected);
   });
 });

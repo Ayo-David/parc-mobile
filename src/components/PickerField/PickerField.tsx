@@ -39,7 +39,7 @@ export function PickerField({ placeholder, options, selectedValue, onSelect, sea
     trigger: {
       height: theme.control.input,
       borderRadius: theme.radii.input,
-      borderWidth: 1,
+      borderWidth: theme.borderWidth.thin,
       borderColor: recipe.borderColor,
       backgroundColor: recipe.backgroundColor,
       paddingHorizontal: theme.semanticSpacing.form,
