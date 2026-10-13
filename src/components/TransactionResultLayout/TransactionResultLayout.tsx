@@ -1,11 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Stack } from "expo-router";
 import type { ReactNode } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import type { Money } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
 import { MoneyText } from "@/components/MoneyText/MoneyText";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
+import { useTerminalScreen } from "@/navigation/useTerminalScreen";
 import { useTheme } from "@/theme";
 
 export type TransactionResultTone = "success" | "warning" | "error";
@@ -28,6 +31,12 @@ export interface TransactionResultLayoutProps {
   /** Figma's Transfer/Loan result screens put two actions side by side; the Bill receipt screens (node 439:131/439:186) stack "Share receipt" above "Done" full-width instead. */
   stackActions?: boolean;
   children?: ReactNode;
+  /**
+   * Result screens are terminal by default: no back arrow, no swipe-back,
+   * Android back runs the primary action. Set for a non-terminal use (e.g.
+   * the overdue warning before repayment) to show a normal BackHeader.
+   */
+  allowBack?: { title: string };
 }
 
 const TONE_ICON: Record<TransactionResultTone, keyof typeof Ionicons.glyphMap> = {
@@ -46,7 +55,8 @@ const TONE_ICON: Record<TransactionResultTone, keyof typeof Ionicons.glyphMap> =
  * this is the first time the real designed result card (tone icon badge,
  * big mono amount, recipient/detail lines, two-button footer) is used.
  */
-export function TransactionResultLayout({ tone, title, money, detailLines, primaryAction, secondaryAction, isProcessing = false, stackActions = false, children }: TransactionResultLayoutProps) {
+export function TransactionResultLayout({ tone, title, money, detailLines, primaryAction, secondaryAction, isProcessing = false, stackActions = false, children, allowBack }: TransactionResultLayoutProps) {
+  useTerminalScreen(allowBack ? undefined : primaryAction?.onPress);
   const { theme } = useTheme();
 
   const toneStyles: Record<TransactionResultTone, { backgroundColor: string; iconColor: string }> = {
@@ -102,6 +112,7 @@ export function TransactionResultLayout({ tone, title, money, detailLines, prima
 
   return (
     <ScreenContainer>
+      {allowBack ? <BackHeader title={allowBack.title} /> : <Stack.Screen options={{ gestureEnabled: false }} />}
       <View style={styles.content}>
         {isProcessing ? <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginBottom: theme.semanticSpacing.component }} /> : (
           <View style={styles.badge}>

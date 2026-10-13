@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useBeneficiaries } from "@/api/queries/useBeneficiaries";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { firstString } from "@/features/beneficiaries/fieldProbe";
 import { useTheme } from "@/theme";
@@ -45,7 +46,7 @@ export default function DeleteBeneficiaryScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: `Remove ${name}?` }} />
+      <BackHeader title={`Remove ${name}?`} />
       <View style={styles.content}>
         <View style={styles.warningCard}>
           <Text style={styles.warningTitle}>This can&apos;t be undone</Text>

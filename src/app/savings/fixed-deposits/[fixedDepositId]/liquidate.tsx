@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -8,6 +8,7 @@ import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import type { FixedDepositQuoteResult } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 import { formatMoney } from "@/utils/money";
@@ -81,7 +82,7 @@ export default function FixedDepositLiquidateScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Liquidate Fixed Deposit" }} />
+      <BackHeader title="Liquidate Fixed Deposit" />
       <View style={styles.content}>
         {isLoadingQuote ? (
           <View style={styles.centered}>

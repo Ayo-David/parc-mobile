@@ -9,6 +9,7 @@ import { createIdempotencyKey } from "@/api/idempotency";
 import { useBootstrap } from "@/api/queries/useBootstrap";
 import type { LoanType } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TextField } from "@/components/TextField/TextField";
 import { useLoanApplicationDraftStore } from "@/features/loans/loanApplicationDraftStore";
@@ -67,11 +68,7 @@ export default function LoanReviewScreen() {
   }
 
   const styles = StyleSheet.create({
-    content: {
-      flex: 1,
-      paddingTop: theme.semanticSpacing.section,
-      gap: theme.semanticSpacing.form,
-    },
+    content: { flex: 1, paddingTop: theme.semanticSpacing.section, gap: theme.semanticSpacing.form },
     title: { ...theme.typography.h2, color: theme.colors.textPrimary, marginBottom: theme.semanticSpacing.section },
     row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: theme.semanticSpacing.form, borderBottomWidth: 1, borderBottomColor: theme.colors.divider },
     label: { ...theme.typography.bodyMedium, color: theme.colors.textSecondary },
@@ -84,8 +81,8 @@ export default function LoanReviewScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader title="Review Application" />
       <View style={styles.content}>
-        <Text style={styles.title}>Review application</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Amount</Text>
           <Text style={styles.value}>{draft.amountMinor ? formatMoney({ amount_minor: draft.amountMinor, currency: "NGN" }) : "—"}</Text>

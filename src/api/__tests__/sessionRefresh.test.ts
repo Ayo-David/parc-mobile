@@ -62,6 +62,20 @@ describe("session refresh", () => {
     expect(useSessionStore.getState().sessionExpired).toBe(true);
   });
 
+  it("does not refresh on a wrong-credential 401 (e.g. wrong transaction PIN)", async () => {
+    httpClient.defaults.adapter = async (config) => {
+      if (config.url === "/v1/auth/token/refresh") {
+        refreshCalls.push("unexpected");
+        return respond(config, 200, {});
+      }
+      return respond(config, 401, { code: "AUTHENTICATION_FAILED", message: "Authentication failed" });
+    };
+
+    await expect(httpClient.post("/v1/security/transaction-pin/rotate", {})).rejects.toMatchObject({ category: "authentication", code: "AUTHENTICATION_FAILED" });
+    expect(refreshCalls).toEqual([]);
+    expect(useSessionStore.getState().session?.refreshToken).toBe("refresh-1");
+  });
+
   it("keeps the session when the refresh fails on the network", async () => {
     httpClient.defaults.adapter = async (config) => {
       if (config.url === "/v1/auth/token/refresh") {

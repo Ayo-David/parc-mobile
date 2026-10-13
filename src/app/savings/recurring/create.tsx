@@ -105,7 +105,7 @@ export default function CreateRecurringPlanScreen() {
 
   if (!summary.isLoading && !savingsAccount) {
     return (
-      <FormScreenLayout title="Set up auto-save">
+      <FormScreenLayout headerTitle="Auto-save" title="Set up auto-save">
         <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>
           You don't have a savings account yet, and this app can't open one for you in this build. Please contact support.
         </Text>
@@ -114,7 +114,7 @@ export default function CreateRecurringPlanScreen() {
   }
 
   return (
-    <FormScreenLayout
+    <FormScreenLayout headerTitle="Auto-save"
       title="Set up auto-save"
       subtitle="We'll move money from your wallet into savings automatically."
       errorMessage={error}

@@ -24,6 +24,16 @@ export function BackButton({ onPress, tone = "surface", size = "default" }: Back
   const { theme } = useTheme();
   const router = useRouter();
 
+  // A screen opened from a deep link or notification has no history to pop;
+  // fall back to the app's home instead of a no-op/crash.
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  }
+
   const styles = StyleSheet.create({
     button: {
       width: size === "compact" ? theme.control.backButtonCompact : theme.control.backButton,
@@ -36,7 +46,7 @@ export function BackButton({ onPress, tone = "surface", size = "default" }: Back
   });
 
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={onPress ?? (() => router.back())} style={styles.button}>
+    <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={onPress ?? goBack} style={styles.button}>
       <Ionicons name="arrow-back" size={theme.icon.nav} color={tone === "onMedia" ? theme.colors.textInverse : theme.colors.textPrimary} />
     </Pressable>
   );

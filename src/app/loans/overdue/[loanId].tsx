@@ -23,6 +23,7 @@ export default function LoanOverdueScreen() {
 
   return (
     <TransactionResultLayout
+      allowBack={{ title: "Loan Overdue" }}
       tone="error"
       title="Payment overdue"
       money={loan ? { amount_minor: loan.outstanding_principal, currency: "NGN" } : undefined}

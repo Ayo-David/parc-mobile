@@ -1,10 +1,11 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -54,7 +55,7 @@ export default function CloseAccountScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Close your Parc account?" }} />
+      <BackHeader title="Close your Parc account?" />
       <View style={styles.content}>
         <View style={styles.warningCard}>
           <Text style={styles.warningTitle}>This can&apos;t be undone</Text>

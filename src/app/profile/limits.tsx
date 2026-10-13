@@ -1,8 +1,9 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useProfile } from "@/api/queries/useProfile";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { KYC_TIER_LIMITS, kycLimitForTier } from "@/features/security/kycLimits";
 import { useTheme, withAlpha } from "@/theme";
@@ -54,7 +55,7 @@ export default function AccountLimitsScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Account Limits" }} />
+      <BackHeader title="Account Limits" />
       <View style={styles.content}>
         <View style={styles.tierCard}>
           <View style={styles.tierRow}>

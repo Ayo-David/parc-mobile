@@ -1,13 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { BackButton } from "@/components/BackButton/BackButton";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
@@ -75,10 +68,7 @@ export default function LoginIdentifierScreen() {
       borderRadius: theme.radii.lg,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor:
-        identifier.trim().length >= 3
-          ? theme.colors.primary
-          : theme.colors.border,
+      backgroundColor: identifier.trim().length >= 3 ? theme.colors.primary : theme.colors.border,
     },
     nextButtonLabel: {
       ...theme.typography.button,
@@ -117,15 +107,10 @@ export default function LoginIdentifierScreen() {
         <BackButton />
       </View>
       {/* The field auto-focuses, so the footer must ride above the keyboard or Next is unreachable. */}
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoider}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={styles.body}>
           <Text style={styles.title}>Sign in to{"\n"}your account.</Text>
-          <Text style={styles.subtitle}>
-            Enter your phone number or email address
-          </Text>
+          <Text style={styles.subtitle}>Enter your phone number or email address</Text>
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Phone Number or Email</Text>
             <TextField
@@ -144,28 +129,18 @@ export default function LoginIdentifierScreen() {
               returnKeyType="next"
             />
             <Text style={styles.fieldHelper} accessibilityLiveRegion="polite">
-              {showInvalid
-                ? "Enter a valid Nigerian phone number (e.g. 0802 000 0001) or email address"
-                : "Use the phone number or email you registered with"}
+              {showInvalid ? "Enter a valid Nigerian phone number (e.g. 0802 000 0001) or email address" : "Use the phone number or email you registered with"}
             </Text>
           </View>
         </View>
         <View style={styles.footer}>
-          <Pressable
-            style={styles.nextButton}
-            disabled={!canContinue}
-            onPress={handleNext}
-            accessibilityRole="button"
-          >
+          <Pressable style={styles.nextButton} disabled={!canContinue} onPress={handleNext} accessibilityRole="button">
             <Text style={styles.nextButtonLabel}>Next →</Text>
           </Pressable>
           <View style={styles.recoverRow}>
             <Text style={styles.recoverText}>
               Forgot passcode?{" "}
-              <Text
-                style={styles.recoverLink}
-                onPress={() => router.push("/(auth)/forgot-passcode")}
-              >
+              <Text style={styles.recoverLink} onPress={() => router.push("/(auth)/forgot-passcode")}>
                 Recover access
               </Text>
             </Text>

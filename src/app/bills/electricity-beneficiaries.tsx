@@ -1,8 +1,8 @@
-import { Stack } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/components/Button/Button";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -29,7 +29,7 @@ export default function ElectricityBeneficiariesScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "My Meters" }} />
+      <BackHeader title="My Meters" />
       <View style={styles.content}>
         <EmptyState emoji="⚡" title="No saved meters yet" body="Saving a meter for quick recharge isn't available in this app version yet." />
         <Text style={styles.notice}>You can still pay any meter directly from Electricity — just enter the number each time.</Text>

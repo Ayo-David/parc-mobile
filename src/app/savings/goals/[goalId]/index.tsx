@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useSavingsSummary } from "@/api/queries/useSavingsSummary";
 import { Button } from "@/components/Button/Button";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusBadge } from "@/components/StatusBadge/StatusBadge";
 import { useSavingsRecordsStore } from "@/state/stores/savingsRecordsStore";
@@ -41,7 +42,7 @@ export default function GoalDetailScreen() {
     footer: { paddingBottom: theme.semanticSpacing.section, paddingTop: theme.semanticSpacing.form },
     card: { backgroundColor: theme.colors.surfaceInverse, borderRadius: theme.radii.card, padding: theme.semanticSpacing.card, gap: theme.spacing.sm },
     cardLabel: { ...theme.typography.text12SemiBold, color: withAlpha(theme.colors.textInverse, 0.45) },
-    cardTarget: { ...theme.typography.text28ExtraBoldMono, color: theme.colors.textInverse },
+    cardTarget: { ...theme.typography.text28ExtraBoldFigure, color: theme.colors.textInverse },
     cardMeta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     cardMetaText: { ...theme.typography.text11p5Regular, color: withAlpha(theme.colors.textInverse, 0.5) },
     disclosure: { ...theme.typography.text12Regular, color: theme.colors.textMuted },
@@ -62,7 +63,7 @@ export default function GoalDetailScreen() {
   if (!goal) {
     return (
       <ScreenContainer>
-        <Stack.Screen options={{ title: "Savings goal" }} />
+        <BackHeader title="Savings goal" />
         <View style={styles.content}>
           <Text style={styles.disclosure}>This goal is no longer available on this device.</Text>
         </View>
@@ -72,7 +73,7 @@ export default function GoalDetailScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: goal.name }} />
+      <BackHeader title={goal.name} />
       <View style={styles.content}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
@@ -107,7 +108,7 @@ export default function GoalDetailScreen() {
               </View>
             </View>
           ) : (
-            <Button label="Done" onPress={() => router.replace("/(tabs)/savings")} />
+            <Button label="Done" onPress={() => router.dismissTo("/(tabs)/savings")} />
           )}
         </View>
       </View>

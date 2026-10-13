@@ -1,10 +1,11 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TextField } from "@/components/TextField/TextField";
 import { useTheme } from "@/theme";
@@ -67,7 +68,7 @@ export default function DisputeTransactionScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Dispute Transaction" }} />
+      <BackHeader title="Dispute Transaction" />
       <View style={styles.content}>
         <View style={styles.contextCard}>
           <Text style={styles.contextTitle}>Transaction</Text>

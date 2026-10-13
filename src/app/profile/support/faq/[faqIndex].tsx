@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useFaqs } from "@/api/queries/useSupport";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { firstString } from "@/features/support/fieldProbe";
 import { useTheme } from "@/theme";
@@ -61,7 +62,7 @@ export default function FaqAnswerScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "FAQ" }} />
+      <BackHeader title="FAQ" />
       <View style={styles.content}>
         <Text style={styles.question}>{question}</Text>
         <Text style={styles.answer}>{answer}</Text>

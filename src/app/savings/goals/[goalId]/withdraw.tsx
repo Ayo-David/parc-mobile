@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -75,7 +75,7 @@ export default function GoalWithdrawScreen() {
 
   if (!goal) {
     return (
-      <FormScreenLayout title="Withdraw">
+      <FormScreenLayout headerTitle="Withdraw" title="Withdraw">
         <Text style={styles.available}>This goal is no longer available on this device.</Text>
       </FormScreenLayout>
     );
@@ -83,8 +83,7 @@ export default function GoalWithdrawScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: `Withdraw from ${goal.name}` }} />
-      <FormScreenLayout
+      <FormScreenLayout headerTitle="Withdraw"
         title={`Withdraw from ${goal.name}`}
         errorMessage={error}
         footer={<Button label="Confirm withdrawal" onPress={handleWithdraw} disabled={!amountMinor} loading={isSubmitting} />}

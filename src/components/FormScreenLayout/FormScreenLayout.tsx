@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -10,6 +11,10 @@ export interface FormScreenLayoutProps {
   children?: ReactNode;
   footer?: ReactNode;
   errorMessage?: string | null;
+  /** In-app (post-login) screens: renders the standard BackHeader with this title. Onboarding forms leave it unset. */
+  headerTitle?: string;
+  /** Overrides the BackHeader's back action (default: safe router.back). */
+  onBack?: () => void;
 }
 
 /**
@@ -17,13 +22,13 @@ export interface FormScreenLayoutProps {
  * subtitle + fields + a footer action pinned above the keyboard). Reused
  * rather than re-implemented per screen, per SKILL.md.
  */
-export function FormScreenLayout({ title, subtitle, children, footer, errorMessage }: FormScreenLayoutProps) {
+export function FormScreenLayout({ title, subtitle, children, footer, errorMessage, headerTitle, onBack }: FormScreenLayoutProps) {
   const { theme } = useTheme();
 
   const styles = StyleSheet.create({
     flex: { flex: 1 },
     content: {
-      paddingTop: theme.semanticSpacing.section,
+      paddingTop: headerTitle ? theme.spacing.lg : theme.semanticSpacing.section,
       flexGrow: 1,
     },
     title: {
@@ -53,6 +58,7 @@ export function FormScreenLayout({ title, subtitle, children, footer, errorMessa
 
   return (
     <ScreenContainer>
+      {headerTitle ? <BackHeader title={headerTitle} onBack={onBack} /> : null}
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>{title}</Text>

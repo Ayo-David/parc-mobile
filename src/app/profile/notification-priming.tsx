@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Linking, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -41,6 +42,7 @@ export default function NotificationPrimingScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader title="Notifications" />
       <View style={styles.content}>
         <View style={styles.iconBadge}>
           <Ionicons name="notifications-outline" size={theme.icon.large} color={theme.colors.secondary} />

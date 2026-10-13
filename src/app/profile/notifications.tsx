@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { useNotificationPreferences } from "@/api/queries/useNotificationPreferences";
 import { queryClient } from "@/api/queryClient";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -82,6 +83,7 @@ export default function NotificationsScreen() {
   if (preferences.isLoading) {
     return (
       <ScreenContainer>
+        <BackHeader title="Notifications" />
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />
         </View>
@@ -93,6 +95,7 @@ export default function NotificationsScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader title="Notifications" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Pressable style={styles.primingBanner} onPress={() => router.push("/profile/notification-priming")}>
           <Ionicons name="notifications-outline" size={theme.icon.default} color={theme.colors.secondary} />

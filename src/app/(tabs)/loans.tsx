@@ -87,7 +87,7 @@ export default function LoansScreen() {
     activeLoanHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
     activeLoanLabel: { ...theme.typography.text12SemiBold, color: theme.colors.textMuted },
     outstandingLabel: { ...theme.typography.text11Regular, color: theme.colors.textMuted, marginTop: theme.spacing.sm },
-    outstandingAmount: { ...theme.typography.text20ExtraBoldMono, color: theme.colors.secondary, marginTop: 2 },
+    outstandingAmount: { ...theme.typography.text20ExtraBoldFigure, color: theme.colors.secondary, marginTop: 2 },
     repayButton: {
       height: theme.control.buttonLarge,
       borderRadius: theme.radii.button,

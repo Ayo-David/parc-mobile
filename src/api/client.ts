@@ -18,6 +18,10 @@ import {
   billProductSchema,
   billQuoteSchema,
   billReceiptSchema,
+  beneficiaryViewSchema,
+  statementRequestResultSchema,
+  statementStatusResultSchema,
+  notificationItemSchema,
   billValidationSchema,
   bootstrapSchema,
   challengeSchema,
@@ -54,6 +58,10 @@ import {
   walletFundingDetailsSchema,
   walletSummarySchema,
   type AuthResult,
+  type BeneficiaryKind,
+  type BeneficiaryView,
+  type StatementStatusResult,
+  type NotificationItem,
   type BillCategory,
   type BillPayment,
   type BillPaymentState,
@@ -93,7 +101,6 @@ import {
   type RepaymentSource,
   type SavingsGoalResult,
   type SavingsSummary,
-  type StatementStatus,
   type TokenPair,
   type TransactionAuthorization,
   type TransactionPage,
@@ -243,7 +250,11 @@ httpClient.interceptors.response.use(
     }
 
     const config = error.config;
-    if (error.response?.status === 401 && config && config.parcRequiresAuth !== false && !config.parcRetried) {
+    // The BFF rejects a bad/expired bearer token with UNAUTHORIZED. A relayed
+    // AUTHENTICATION_FAILED is a wrong PIN/credential on a valid session
+    // (e.g. transaction-PIN rotate/authorize) and must not trigger a refresh.
+    const isCredentialFailure = extractServerMessage(error.response?.data).code === "AUTHENTICATION_FAILED";
+    if (error.response?.status === 401 && !isCredentialFailure && config && config.parcRequiresAuth !== false && !config.parcRetried) {
       config.parcRetried = true;
       // If the session already moved on (another request refreshed while this
       // one was in flight), just retry with the current token — refreshing
@@ -414,6 +425,16 @@ export const api = {
   },
 
   /** No response schema is documented for the list — returned as a raw array for the screen to render defensively. */
+  /** In-app feed (PUSH/IN_APP only — see notificationItemSchema). Malformed rows are skipped. */
+  async getNotifications(pageSize = 50): Promise<NotificationItem[]> {
+    return request({ method: "GET", path: "/v1/notifications", query: { page_size: String(pageSize) } }, (body) =>
+      listItems(body).flatMap((item) => {
+        const parsed = notificationItemSchema.safeParse(item);
+        return parsed.success && (parsed.data.channel === "IN_APP" || parsed.data.channel === "PUSH") ? [parsed.data] : [];
+      }),
+    );
+  },
+
   async getNotificationPreferences(): Promise<Array<Record<string, unknown>>> {
     return request({ method: "GET", path: "/v1/notification-preferences" }, listItems);
   },
@@ -623,28 +644,15 @@ export const api = {
    * response has no documented schema despite GET /v1/statements/{id}
    * requiring an id — probes for one defensively.
    */
-  async requestStatement(params: { dateFrom: string; dateTo: string; idempotencyKey: string }): Promise<{ statementId: string | null }> {
+  async requestStatement(params: { dateFrom: string; dateTo: string; idempotencyKey: string }): Promise<{ statementId: string }> {
     return request(
       { method: "POST", path: "/v1/statements", headers: { "idempotency-key": params.idempotencyKey }, body: { date_from: params.dateFrom, date_to: params.dateTo, format: "pdf" } },
-      (body): { statementId: string | null } => {
-        if (typeof body !== "object" || body === null) return { statementId: null };
-        const record = body as Record<string, unknown>;
-        const statementId = typeof record.id === "string" ? record.id : typeof record.statement_id === "string" ? record.statement_id : null;
-        return { statementId };
-      },
+      (body) => ({ statementId: parseWithSchema(statementRequestResultSchema, "statement request")(body).id }),
     );
   },
 
-  /** STILL A GAP (re-verified): no response schema documented. Probes plausible field names. */
-  async getStatement(id: string): Promise<{ status: StatementStatus | null; downloadUrl: string | null }> {
-    return request({ method: "GET", path: `/v1/statements/${id}` }, (body) => {
-      if (typeof body !== "object" || body === null) return { status: null, downloadUrl: null };
-      const record = body as Record<string, unknown>;
-      const statusValue = typeof record.status === "string" ? record.status : null;
-      const status = statusValue && ["pending", "processing", "ready", "failed"].includes(statusValue) ? (statusValue as StatementStatus) : null;
-      const downloadUrl = typeof record.download_url === "string" ? record.download_url : typeof record.url === "string" ? record.url : null;
-      return { status, downloadUrl };
-    });
+  async getStatement(id: string): Promise<StatementStatusResult> {
+    return request({ method: "GET", path: `/v1/statements/${id}` }, parseWithSchema(statementStatusResultSchema, "statement status"));
   },
 
   /** STILL A GAP (re-verified): no `Bank` schema exists in the payment contract. Defensively parses a plausible array-of-objects shape. */
@@ -702,6 +710,16 @@ export const api = {
    * beneficiaries") — returned as a raw array, same defensive pattern as
    * FAQs/tickets, not a guessed schema.
    */
+  /** Typed list (shape from parc-payment's source); malformed rows are skipped rather than failing the list. */
+  async listBeneficiaries(kind: BeneficiaryKind): Promise<BeneficiaryView[]> {
+    return request({ method: "GET", path: "/v1/beneficiaries", query: { kind } }, (body) =>
+      listItems(body).flatMap((item) => {
+        const parsed = beneficiaryViewSchema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+      }),
+    );
+  },
+
   async getBeneficiaries(kind?: "all" | "recent" | "favourite"): Promise<Array<Record<string, unknown>>> {
     return request({ method: "GET", path: "/v1/beneficiaries", query: kind ? { kind } : undefined }, listItems);
   },
@@ -791,6 +809,27 @@ export const api = {
   /** GET /v1/profile relays to auth-customer's fully-typed GET /v1/customers/me. */
   async getProfile(): Promise<Customer> {
     return request({ method: "GET", path: "/v1/profile" }, parseWithSchema(customerSchema, "profile"));
+  },
+
+  /**
+   * PATCH /v1/profile → auth-customer PATCH /v1/customers/me (strict body:
+   * first_name/last_name/email, at least one; Idempotency-Key required).
+   * Returns the updated customer view; a taken email is 409 EMAIL_ALREADY_EXISTS.
+   */
+  async updateProfile(params: { firstName?: string; lastName?: string; email?: string; idempotencyKey: string }): Promise<Customer> {
+    return request(
+      {
+        method: "PATCH",
+        path: "/v1/profile",
+        headers: { "idempotency-key": params.idempotencyKey },
+        body: {
+          ...(params.firstName !== undefined ? { first_name: params.firstName } : {}),
+          ...(params.lastName !== undefined ? { last_name: params.lastName } : {}),
+          ...(params.email !== undefined ? { email: params.email } : {}),
+        },
+      },
+      parseWithSchema(customerSchema, "profile update"),
+    );
   },
 
   async getBillProducts(category: BillCategory): Promise<BillProduct[]> {

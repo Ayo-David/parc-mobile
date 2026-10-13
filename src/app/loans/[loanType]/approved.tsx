@@ -18,7 +18,7 @@ export default function LoanApprovedScreen() {
 
   function handleDone() {
     resetDraft();
-    router.replace("/(tabs)/loans");
+    router.dismissTo("/(tabs)/loans");
   }
 
   return (

@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TransactionPinSheet } from "@/components/TransactionPinSheet/TransactionPinSheet";
 import { useWalletSourceAccount } from "@/api/queries/useWalletSourceAccount";
@@ -31,13 +32,7 @@ export default function TransferReviewScreen() {
   const [error, setError] = useState<string | null>(null);
   const transferReference = useMemo(() => randomUUID(), []);
 
-  const requestPayload = {
-    bank_code: draft.bankCode,
-    account_number: draft.accountNumber,
-    amount_minor: draft.amountMinor,
-    currency: draft.currency,
-    narration: draft.narration,
-  };
+  const requestPayload = { bank_code: draft.bankCode, account_number: draft.accountNumber, amount_minor: draft.amountMinor, currency: draft.currency, narration: draft.narration };
 
   async function handleAuthorized(authorizationToken: string) {
     const sourceAccountId = walletSourceAccount.data?.source_account_id;
@@ -74,47 +69,19 @@ export default function TransferReviewScreen() {
   }
 
   const styles = StyleSheet.create({
-    content: {
-      flex: 1,
-      paddingTop: theme.semanticSpacing.section,
-      gap: theme.semanticSpacing.form,
-    },
-    title: {
-      ...theme.typography.h2,
-      color: theme.colors.textPrimary,
-      marginBottom: theme.semanticSpacing.section,
-    },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingVertical: theme.semanticSpacing.form,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.divider,
-    },
-    label: {
-      ...theme.typography.bodyMedium,
-      color: theme.colors.textSecondary,
-    },
-    value: {
-      ...theme.typography.bodyMedium,
-      fontWeight: "600",
-      color: theme.colors.textPrimary,
-    },
-    error: {
-      ...theme.typography.bodySmall,
-      color: theme.colors.error,
-      marginTop: theme.semanticSpacing.component,
-    },
-    footer: {
-      paddingTop: theme.semanticSpacing.component,
-      paddingBottom: theme.semanticSpacing.component,
-    },
+    content: { flex: 1, paddingTop: theme.semanticSpacing.section, gap: theme.semanticSpacing.form },
+    title: { ...theme.typography.h2, color: theme.colors.textPrimary, marginBottom: theme.semanticSpacing.section },
+    row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: theme.semanticSpacing.form, borderBottomWidth: 1, borderBottomColor: theme.colors.divider },
+    label: { ...theme.typography.bodyMedium, color: theme.colors.textSecondary },
+    value: { ...theme.typography.bodyMedium, fontWeight: "600", color: theme.colors.textPrimary },
+    error: { ...theme.typography.bodySmall, color: theme.colors.error, marginTop: theme.semanticSpacing.component },
+    footer: { paddingTop: theme.semanticSpacing.component, paddingBottom: theme.semanticSpacing.component },
   });
 
   return (
     <ScreenContainer>
+      <BackHeader title="Review Transfer" />
       <View style={styles.content}>
-        <Text style={styles.title}>Review transfer</Text>
         <View style={styles.row}>
           <Text style={styles.label}>Recipient</Text>
           <Text style={styles.value}>{draft.accountName}</Text>

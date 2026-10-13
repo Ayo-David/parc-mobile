@@ -25,7 +25,7 @@ export default function CreateTransactionPinScreen() {
   }, [pin, router]);
 
   return (
-    <FormScreenLayout title="Create your transaction PIN" subtitle="You'll use this 4-digit PIN to authorize transfers, bill payments, and loan actions.">
+    <FormScreenLayout headerTitle="Transaction PIN" title="Create your transaction PIN" subtitle="You'll use this 4-digit PIN to authorize transfers, bill payments, and loan actions.">
       <PinPad length={PIN_LENGTH} value={pin} onChange={setPin} />
     </FormScreenLayout>
   );

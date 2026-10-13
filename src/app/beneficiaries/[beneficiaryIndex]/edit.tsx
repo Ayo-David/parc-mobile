@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useBeneficiaries } from "@/api/queries/useBeneficiaries";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TextField } from "@/components/TextField/TextField";
 import { avatarColorFor, firstString, initialsFor } from "@/features/beneficiaries/fieldProbe";
@@ -54,7 +55,7 @@ export default function EditBeneficiaryScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Edit Beneficiary" }} />
+      <BackHeader title="Edit Beneficiary" />
       <View style={styles.content}>
         <View style={styles.avatarWrap}>
           <View style={[styles.avatar, { backgroundColor: avatarColorFor(name, palette) }]}>

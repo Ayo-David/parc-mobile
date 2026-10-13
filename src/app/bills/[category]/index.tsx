@@ -10,8 +10,10 @@ import { createIdempotencyKey } from "@/api/idempotency";
 import { useBillProducts } from "@/api/queries/useBillProducts";
 import { useProfile } from "@/api/queries/useProfile";
 import type { BillCategory, BillProduct } from "@/api/schemas";
-import { BackButton } from "@/components/BackButton/BackButton";
 import { Button } from "@/components/Button/Button";
+import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { ErrorState } from "@/components/ErrorState/ErrorState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
 import { TextField } from "@/components/TextField/TextField";
@@ -195,7 +197,7 @@ export default function BillProductScreen() {
     presetGrid: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm, marginTop: theme.spacing.md },
     presetChip: { width: "31%", alignItems: "center", justifyContent: "center", paddingVertical: theme.spacing.md, borderRadius: theme.radii.lg, borderWidth: theme.borderWidth.thin, borderColor: theme.colors.borderSubtle, backgroundColor: theme.colors.background },
     presetChipSelected: { borderColor: theme.colors.primary, backgroundColor: theme.colors.primarySubtle },
-    presetLabel: { ...theme.typography.text16ExtraBoldMono, color: theme.colors.textPrimary },
+    presetLabel: { ...theme.typography.text16ExtraBoldFigure, color: theme.colors.textPrimary },
     customAmountRow: { marginTop: theme.spacing.md },
     amountHelper: { ...theme.typography.text12Regular, color: theme.colors.textMuted, marginTop: theme.spacing.sm },
     productList: { marginTop: theme.spacing.md },
@@ -228,13 +230,14 @@ export default function BillProductScreen() {
     <ScreenContainer>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <BackButton />
-          <Text style={styles.title}>{CATEGORY_TITLES[category] ?? "Pay bill"}</Text>
-          <Pressable onPress={() => router.push("/transactions")} accessibilityRole="button" accessibilityLabel="History">
-            <Text style={styles.historyLabel}>History</Text>
-          </Pressable>
-        </View>
+        <BackHeader
+          title={CATEGORY_TITLES[category] ?? "Pay bill"}
+          right={
+            <Pressable onPress={() => router.push("/transactions")} accessibilityRole="link" accessibilityLabel="History" hitSlop={8}>
+              <Text style={styles.historyLabel}>History</Text>
+            </Pressable>
+          }
+        />
 
         <View style={styles.hero}>
           <LinearGradient colors={heroGradient.gradientColors} locations={heroGradient.gradientLocations} start={heroGradient.gradientStart} end={heroGradient.gradientEnd} style={StyleSheet.absoluteFill} />
@@ -251,6 +254,15 @@ export default function BillProductScreen() {
 
         {products.isLoading ? (
           <ActivityIndicator color={theme.colors.primary} style={{ marginTop: theme.semanticSpacing.section }} />
+        ) : products.isError ? (
+          <ErrorState
+            tone={products.error instanceof ApiError && products.error.category === "network" ? "network" : "error"}
+            body="We couldn't load providers right now."
+            onRetry={() => void products.refetch()}
+          />
+        ) : productsData.length === 0 ? (
+          // The tenant's bill catalogue can legitimately be empty (nothing imported/published yet).
+          <EmptyState emoji="🧾" title="No providers available yet" body="This service isn't available on your account right now. Please check back later." />
         ) : (
           <>
             {isAllVariable ? (
@@ -331,9 +343,11 @@ export default function BillProductScreen() {
           </>
         )}
 
-        <View style={styles.footer}>
-          <Button label="Continue" onPress={handleContinue} disabled={!product || !isValidIdentifier || !profile.data || (isAllVariable && !isValidAmount)} loading={isValidating} />
-        </View>
+        {productsData.length > 0 ? (
+          <View style={styles.footer}>
+            <Button label="Continue" onPress={handleContinue} disabled={!product || !isValidIdentifier || !profile.data || (isAllVariable && !isValidAmount)} loading={isValidating} />
+          </View>
+        ) : null}
       </ScrollView>
     </ScreenContainer>
   );

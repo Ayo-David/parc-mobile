@@ -212,7 +212,7 @@ export default function RegisterPhoneScreen() {
       textAlignVertical: "center",
     },
     referralInputText: {
-      ...theme.typography.text15RegularMono,
+      ...theme.typography.text15RegularFigure,
       color: theme.colors.textPrimary,
     },
     referralHelper: {

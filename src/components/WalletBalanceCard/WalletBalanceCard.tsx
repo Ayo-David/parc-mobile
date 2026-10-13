@@ -112,7 +112,7 @@ export function WalletBalanceCard({ balance, accountNumber, bankName, accountNam
       marginTop: theme.spacing.xs,
     },
     balanceAmount: {
-      ...theme.typography.text30ExtraBoldMono,
+      ...theme.typography.text30ExtraBoldFigure,
       color: theme.colors.textInverse,
     },
     eyeButton: {
@@ -139,7 +139,7 @@ export function WalletBalanceCard({ balance, accountNumber, bankName, accountNam
       color: withAlpha(theme.colors.textInverse, 0.35),
     },
     accountNumber: {
-      ...theme.typography.text15BoldMono,
+      ...theme.typography.text15BoldFigure,
       color: theme.colors.textInverse,
       marginTop: 3,
     },

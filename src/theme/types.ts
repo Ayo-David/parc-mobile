@@ -67,6 +67,8 @@ export interface TypographyStyle {
   fontSize: number;
   lineHeight: number;
   letterSpacing: number;
+  /** ["tabular-nums"] on amount/data figures so digits align in columns. */
+  fontVariant?: TextStyle["fontVariant"];
 }
 
 export interface Typography {
@@ -102,17 +104,17 @@ export interface Typography {
   /** The AuthBtn label weight used on register-phone (322:349) — Bold, not the SemiBold `button` token used on other AuthBtn instances (GetStarted/PhoneEmailLogin). */
   text16Bold: TypographyStyle;
   text13Regular: TypographyStyle;
-  /** Referral-code input placeholder (322:332) — JetBrains Mono, for a code-like value. */
-  text15RegularMono: TypographyStyle;
+  /** Referral-code input placeholder (322:332) — Plus Jakarta Sans with tabular figures, for a code-like value. */
+  text15RegularFigure: TypographyStyle;
   /** PIN-pad key letter subtitle ("ABC"/"DEF"/…, 226:1605 etc.) — 8px, uppercase applied via textTransform at the call site. */
   text8MediumWide: TypographyStyle;
   // Dashboard-density scale, added for the wallet Home screen (Figma
   // "Parc Dashboard" 326:968 > HomeScreen 226:2865) — finer-grained than
   // the marketing/onboarding scale above, and named by literal size+weight
   // since none of it maps onto the existing named steps. See
-  // design-system.md §8. Named `*Mono` styles use JetBrains Mono (restored
-  // 2026-09-20 — design-system.md §8 confirmed Figma's real production
-  // frames use it for every money figure on this screen).
+  // design-system.md §8. Named `*Figure` styles are money/data figures:
+  // Plus Jakarta Sans with tabular numerals — never JetBrains Mono
+  // (PLAN.md THEME-02), even though Figma's frames specify it.
   text10Bold: TypographyStyle;
   text10p5Regular: TypographyStyle;
   text10p5Bold: TypographyStyle;
@@ -135,28 +137,28 @@ export interface Typography {
   text13Bold: TypographyStyle;
   /** Savings screen goal-card "% of goal" figure (239:14698); fixed-deposit-card title (239:14792). */
   text13ExtraBold: TypographyStyle;
-  text13ExtraBoldMono: TypographyStyle;
+  text13ExtraBoldFigure: TypographyStyle;
   text13p5SemiBold: TypographyStyle;
   text14ExtraBold: TypographyStyle;
-  text14BoldMono: TypographyStyle;
+  text14BoldFigure: TypographyStyle;
   text15Bold: TypographyStyle;
   /** Payments screen beneficiary-avatar initials (232:7392). */
   text15ExtraBold: TypographyStyle;
   /** Payments screen "Send Money" hero-card title (232:7327). */
   text16ExtraBold: TypographyStyle;
-  text15BoldMono: TypographyStyle;
+  text15BoldFigure: TypographyStyle;
   text18ExtraBold: TypographyStyle;
   /** Tab-root page headings — "Payments"/"Loans"/"Savings" (232:7308 and siblings). */
   text22ExtraBold: TypographyStyle;
   /** Loan screen "Outstanding" amount (236:11517). */
-  text20ExtraBoldMono: TypographyStyle;
+  text20ExtraBoldFigure: TypographyStyle;
   /** Savings screen fixed-deposit "Principal" figure (239:14807). */
-  text16ExtraBoldMono: TypographyStyle;
+  text16ExtraBoldFigure: TypographyStyle;
   /** Savings screen "Total in Savings" hero figure (239:14651). */
-  text28ExtraBoldMono: TypographyStyle;
+  text28ExtraBoldFigure: TypographyStyle;
   /** Add Money screen's account-number figure (228:3786). */
-  text28ExtraBoldMonoWide: TypographyStyle;
-  text30ExtraBoldMono: TypographyStyle;
+  text28ExtraBoldFigureWide: TypographyStyle;
+  text30ExtraBoldFigure: TypographyStyle;
 }
 
 export interface SpacingScale {

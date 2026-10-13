@@ -53,7 +53,7 @@ export default function ConfirmTransactionPinScreen() {
   }, [confirmation]);
 
   return (
-    <FormScreenLayout title="Confirm your transaction PIN" errorMessage={error}>
+    <FormScreenLayout headerTitle="Transaction PIN" title="Confirm your transaction PIN" errorMessage={error}>
       <PinPad length={PIN_LENGTH} value={confirmation} onChange={setConfirmation} disabled={isSubmitting} />
     </FormScreenLayout>
   );

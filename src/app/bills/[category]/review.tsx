@@ -9,8 +9,8 @@ import { createIdempotencyKey } from "@/api/idempotency";
 import { useProfile } from "@/api/queries/useProfile";
 import { useWalletSourceAccount } from "@/api/queries/useWalletSourceAccount";
 import type { BillCategory } from "@/api/schemas";
-import { BackButton } from "@/components/BackButton/BackButton";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TransactionPinSheet } from "@/components/TransactionPinSheet/TransactionPinSheet";
 import { useBillDraftStore } from "@/features/bills/billDraftStore";
@@ -86,7 +86,7 @@ export default function BillReviewScreen() {
       gap: theme.semanticSpacing.form,
     },
     amountWrap: { alignItems: "center", paddingVertical: theme.semanticSpacing.section },
-    amount: { ...theme.typography.text30ExtraBoldMono, color: theme.colors.textPrimary },
+    amount: { ...theme.typography.text30ExtraBoldFigure, color: theme.colors.textPrimary },
     card: {
       backgroundColor: theme.components.card.backgroundColor,
       borderRadius: theme.components.card.radius,
@@ -110,10 +110,7 @@ export default function BillReviewScreen() {
   return (
     <ScreenContainer>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
-        <BackButton />
-        <Text style={styles.title}>Review payment</Text>
-      </View>
+      <BackHeader title="Review Payment" />
       <View style={styles.content}>
         <View style={styles.amountWrap}>
           {isQuoting ? (

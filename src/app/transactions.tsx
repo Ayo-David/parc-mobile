@@ -6,9 +6,9 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, Vi
 import { ApiError } from "@/api/errors";
 import { useTransactions } from "@/api/queries/useTransactions";
 import type { Transaction } from "@/api/schemas";
-import { BackButton } from "@/components/BackButton/BackButton";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
 import { ErrorState } from "@/components/ErrorState/ErrorState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TransactionRow } from "@/components/TransactionRow/TransactionRow";
 import { useTheme } from "@/theme";
@@ -63,8 +63,18 @@ export default function TransactionHistoryScreen() {
   }, [transactions, search, filter]);
 
   const styles = StyleSheet.create({
-    header: { flexDirection: "row", alignItems: "center", gap: theme.spacing.md - 4, paddingTop: theme.semanticSpacing.component, paddingBottom: theme.spacing.md },
-    title: { ...theme.typography.text16Bold, color: theme.colors.textPrimary, flex: 1 },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.md - 4,
+      paddingTop: theme.semanticSpacing.component,
+      paddingBottom: theme.spacing.md,
+    },
+    title: {
+      ...theme.typography.text16Bold,
+      color: theme.colors.textPrimary,
+      flex: 1,
+    },
     statementButton: {
       flexDirection: "row",
       alignItems: "center",
@@ -74,7 +84,10 @@ export default function TransactionHistoryScreen() {
       borderRadius: theme.radii.chip + 2,
       backgroundColor: theme.colors.primarySubtle,
     },
-    statementLabel: { ...theme.typography.text12Bold, color: theme.colors.textSecondary },
+    statementLabel: {
+      ...theme.typography.text12Bold,
+      color: theme.colors.textSecondary,
+    },
     searchBar: {
       flexDirection: "row",
       alignItems: "center",
@@ -85,9 +98,23 @@ export default function TransactionHistoryScreen() {
       backgroundColor: theme.colors.primarySubtle,
       marginBottom: theme.spacing.md,
     },
-    searchInputText: { ...theme.typography.text14Regular, color: theme.colors.textMuted, flex: 1 },
-    filterRow: { flexDirection: "row", gap: theme.spacing.sm, marginBottom: theme.spacing.sm },
-    filterChip: { paddingHorizontal: theme.spacing.md, height: 34, borderRadius: theme.radii.chip, alignItems: "center", justifyContent: "center" },
+    searchInputText: {
+      ...theme.typography.text14Regular,
+      color: theme.colors.textMuted,
+      flex: 1,
+    },
+    filterRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.sm,
+    },
+    filterChip: {
+      paddingHorizontal: theme.spacing.md,
+      height: 34,
+      borderRadius: theme.radii.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     filterLabel: { ...theme.typography.text12Bold },
     centered: { flex: 1, alignItems: "center", justifyContent: "center" },
   });
@@ -95,14 +122,15 @@ export default function TransactionHistoryScreen() {
   return (
     <ScreenContainer>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
-        <BackButton />
-        <Text style={styles.title}>Transaction History</Text>
-        <Pressable style={styles.statementButton} onPress={() => router.push("/statement")} accessibilityRole="button" accessibilityLabel="Statement">
-          <Ionicons name="download-outline" size={15} color={theme.colors.textSecondary} />
-          <Text style={styles.statementLabel}>Statement</Text>
-        </Pressable>
-      </View>
+      <BackHeader
+        title="Transaction History"
+        right={
+          <Pressable style={styles.statementButton} onPress={() => router.push("/statement")} accessibilityRole="button" accessibilityLabel="Statement">
+            <Ionicons name="download-outline" size={15} color={theme.colors.textSecondary} />
+            <Text style={styles.statementLabel}>Statement</Text>
+          </Pressable>
+        }
+      />
 
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={16} color={theme.colors.textMuted} />
@@ -116,10 +144,24 @@ export default function TransactionHistoryScreen() {
             <Pressable
               key={option.label}
               onPress={() => setFilter(option.value)}
-              style={[styles.filterChip, { backgroundColor: isActive ? theme.colors.primary : theme.colors.primarySubtle }]}
+              style={[
+                styles.filterChip,
+                {
+                  backgroundColor: isActive ? theme.colors.primary : theme.colors.primarySubtle,
+                },
+              ]}
               accessibilityRole="button"
             >
-              <Text style={[styles.filterLabel, { color: isActive ? theme.colors.textInverse : theme.colors.textSecondary }]}>{option.label}</Text>
+              <Text
+                style={[
+                  styles.filterLabel,
+                  {
+                    color: isActive ? theme.colors.textInverse : theme.colors.textSecondary,
+                  },
+                ]}
+              >
+                {option.label}
+              </Text>
             </Pressable>
           );
         })}
@@ -140,7 +182,14 @@ export default function TransactionHistoryScreen() {
               onPress={() =>
                 router.push({
                   pathname: "/disputes/[transactionId]",
-                  params: { transactionId: item.id, amountMinor: item.amount.amount_minor, currency: item.amount.currency, occurredAt: item.occurred_at, status: item.status, reference: item.reference },
+                  params: {
+                    transactionId: item.id,
+                    amountMinor: item.amount.amount_minor,
+                    currency: item.amount.currency,
+                    occurredAt: item.occurred_at,
+                    status: item.status,
+                    reference: item.reference,
+                  },
                 })
               }
             >

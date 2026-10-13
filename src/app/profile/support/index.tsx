@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useFaqs } from "@/api/queries/useSupport";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TextField } from "@/components/TextField/TextField";
 import { firstString } from "@/features/support/fieldProbe";
@@ -64,7 +65,7 @@ export default function SupportHelpHomeScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Help & Support" }} />
+      <BackHeader title="Help & Support" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <TextField value={query} onChangeText={setQuery} placeholder="Search for help..." />
 

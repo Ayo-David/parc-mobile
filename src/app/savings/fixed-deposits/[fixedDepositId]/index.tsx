@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusBadge } from "@/components/StatusBadge/StatusBadge";
 import { useTheme, withAlpha } from "@/theme";
@@ -33,7 +34,7 @@ export default function FixedDepositDetailScreen() {
     content: { flex: 1, paddingTop: theme.semanticSpacing.section, gap: theme.semanticSpacing.component },
     card: { backgroundColor: theme.colors.surfaceInverse, borderRadius: theme.radii.card, padding: theme.semanticSpacing.card, gap: theme.spacing.sm },
     cardLabel: { ...theme.typography.text12SemiBold, color: withAlpha(theme.colors.textInverse, 0.45) },
-    cardPrincipal: { ...theme.typography.text28ExtraBoldMono, color: theme.colors.textInverse },
+    cardPrincipal: { ...theme.typography.text28ExtraBoldFigure, color: theme.colors.textInverse },
     cardMeta: { flexDirection: "row", alignItems: "center", gap: theme.spacing.sm },
     cardMetaText: { ...theme.typography.text11p5Regular, color: withAlpha(theme.colors.textInverse, 0.5) },
     statsRow: { flexDirection: "row", justifyContent: "space-between", backgroundColor: theme.colors.primarySubtle, borderRadius: theme.radii.lg, padding: theme.semanticSpacing.form },
@@ -78,7 +79,7 @@ export default function FixedDepositDetailScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Fixed Deposit" }} />
+      <BackHeader title="Fixed Deposit" />
       <View style={styles.content}>
         <View style={styles.card}>
           <Text style={styles.cardLabel}>Principal</Text>
@@ -125,7 +126,7 @@ export default function FixedDepositDetailScreen() {
             </View>
           </View>
         ) : (
-          <Button label="Done" variant="secondary" onPress={() => router.replace("/(tabs)/savings")} />
+          <Button label="Done" variant="secondary" onPress={() => router.dismissTo("/(tabs)/savings")} />
         )}
       </View>
     </ScreenContainer>

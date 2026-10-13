@@ -6,14 +6,8 @@ import { PlusJakartaSans_500Medium } from "@expo-google-fonts/plus-jakarta-sans/
 import { PlusJakartaSans_600SemiBold } from "@expo-google-fonts/plus-jakarta-sans/600SemiBold";
 import { PlusJakartaSans_700Bold } from "@expo-google-fonts/plus-jakarta-sans/700Bold";
 import { PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sans/800ExtraBold";
-// Restored 2026-09-20 (design-system.md §8) — the wallet dashboard's money
-// figures (balance, account number, transaction amounts) are JetBrains Mono
-// in the live Figma production frames, not Plus Jakarta Sans; only the
-// `amount-xl` documentation token had switched to Sans. Using expo-font's
-// generic `useFonts` now that two families are loaded (not either package's
-// own re-exported hook, which only knows about its own family).
-import { JetBrainsMono_700Bold } from "@expo-google-fonts/jetbrains-mono/700Bold";
-import { JetBrainsMono_800ExtraBold } from "@expo-google-fonts/jetbrains-mono/800ExtraBold";
+// Plus Jakarta Sans is the only typeface, including money figures (PLAN.md
+// THEME-02) — Figma's JetBrains Mono specs are deliberately not followed.
 import { useFonts } from "expo-font";
 import { QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
@@ -60,8 +54,6 @@ function AppGate() {
     PlusJakartaSans_600SemiBold,
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
-    JetBrainsMono_700Bold,
-    JetBrainsMono_800ExtraBold,
   });
   const bootstrap = useBootstrap();
   const auth = useAuth();
@@ -176,9 +168,10 @@ function AppGate() {
           <Stack.Screen name="account-restricted" />
         </Stack.Protected>
         {/* Reachable regardless of restriction status — a restricted customer must still be able to view history and reach Support. */}
-        <Stack.Screen name="transactions" options={{ headerShown: true, title: "Transactions" }} />
-        <Stack.Screen name="statement" options={{ headerShown: true, title: "Statement" }} />
-        <Stack.Screen name="add-money" options={{ headerShown: true, title: "Add Money" }} />
+        <Stack.Screen name="transactions" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="statement" />
+        <Stack.Screen name="add-money" />
         <Stack.Screen name="transfers" />
         <Stack.Screen name="bills" />
         <Stack.Screen name="loans" />

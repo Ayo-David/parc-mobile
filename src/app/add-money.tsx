@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useWalletFundingDetails } from "@/api/queries/useWalletFundingDetails";
-import { BackButton } from "@/components/BackButton/BackButton";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme, withAlpha } from "@/theme";
 
@@ -45,7 +45,7 @@ export default function AddMoneyScreen() {
     title: { ...theme.typography.text16Bold, color: theme.colors.textPrimary },
     card: { padding: theme.semanticSpacing.card, borderRadius: theme.radii.card, overflow: "hidden" },
     cardLabel: { ...theme.typography.text12Regular, color: withAlpha(theme.colors.textInverse, 0.5) },
-    accountNumber: { ...theme.typography.text28ExtraBoldMonoWide, color: theme.colors.textInverse, marginTop: theme.spacing.xs },
+    accountNumber: { ...theme.typography.text28ExtraBoldFigureWide, color: theme.colors.textInverse, marginTop: theme.spacing.xs },
     accountName: { ...theme.typography.text13Regular, color: withAlpha(theme.colors.textInverse, 0.6), marginTop: theme.spacing.sm - 2 },
     copyRow: { flexDirection: "row", alignItems: "center", gap: theme.spacing.xs + 2, marginTop: theme.spacing.md, alignSelf: "flex-start" },
     copyLabel: { ...theme.typography.text12Bold, color: withAlpha(theme.colors.textInverse, 0.7) },
@@ -76,10 +76,7 @@ export default function AddMoneyScreen() {
   return (
     <ScreenContainer>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
-        <BackButton />
-        <Text style={styles.title}>Add Money</Text>
-      </View>
+      <BackHeader title="Add Money" />
 
       {!fundingData ? (
         <View style={styles.centered}>

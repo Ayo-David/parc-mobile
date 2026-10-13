@@ -182,7 +182,7 @@ export default function RegisterOtpScreen() {
         <View style={styles.countdownRow}>
           {secondsLeft > 0 ? (
             <Text style={styles.countdownText}>
-              Resend in <Text style={[styles.countdownText, { fontFamily: theme.typography.text14BoldMono.fontFamily, color: theme.colors.textPrimary }]}>{formatCountdown(secondsLeft)}</Text>
+              Resend in <Text style={[styles.countdownText, { fontFamily: theme.typography.text14BoldFigure.fontFamily, color: theme.colors.textPrimary }]}>{formatCountdown(secondsLeft)}</Text>
             </Text>
           ) : (
             <Pressable onPress={() => setIsResendSheetVisible(true)}>

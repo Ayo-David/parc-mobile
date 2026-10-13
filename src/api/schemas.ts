@@ -248,7 +248,24 @@ export interface TransactionPage {
  * `getStatement` below probes a few plausible field names for status/URL
  * rather than assuming a shape.
  */
-export const statementStatusSchema = z.enum(["pending", "processing", "ready", "failed"]);
+export const statementStatusSchema = z.enum(["pending", "processing", "ready", "failed", "expired"]);
+
+/**
+ * Confirmed against parc-ledger (customer-statement-service.ts, relayed by
+ * the BFF): request → `{ id, status, replayed }`; status → lower-cased
+ * status + period + format, and when READY a storage `download_reference`
+ * (not a URL — no download route exists for the app yet).
+ */
+export const statementRequestResultSchema = z.object({ id: z.string().uuid(), status: z.string(), replayed: z.boolean() });
+export const statementStatusResultSchema = z.object({
+  status: statementStatusSchema,
+  date_from: z.string().optional(),
+  date_to: z.string().optional(),
+  format: z.string().optional(),
+  download_reference: z.string().optional(),
+  download_expires_at: z.string().optional(),
+});
+export type StatementStatusResult = z.infer<typeof statementStatusResultSchema>;
 export type StatementStatus = z.infer<typeof statementStatusSchema>;
 
 /**
@@ -653,3 +670,46 @@ export const recurringPlanResultSchema = z.object({
   replayed: z.boolean(),
 });
 export type RecurringPlanResult = z.infer<typeof recurringPlanResultSchema>;
+
+/**
+ * parc-payment `BeneficiaryView` (src/services/beneficiary-service.ts) —
+ * GET /v1/beneficiaries?kind=all|recent|favourite returns `{ items: [...] }`.
+ * The payment contract documents it as prose only; this mirrors the source.
+ */
+export const beneficiaryViewSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  nickname: z.string().nullable(),
+  account_number: z.string().nullable(),
+  bank_code: z.string().nullable(),
+  bank_name: z.string().nullable(),
+  is_verified: z.boolean(),
+  is_favourite: z.boolean(),
+  created_at: z.string(),
+  last_used_at: z.string().nullable(),
+});
+export type BeneficiaryView = z.infer<typeof beneficiaryViewSchema>;
+export type BeneficiaryKind = "all" | "recent" | "favourite";
+
+/**
+ * auth-customer GET /v1/notifications → `{ items }` from the `notifications`
+ * table (customer-experience-service.ts). Every delivery channel is listed,
+ * so the app shows only PUSH/IN_APP — SMS/EMAIL bodies can carry OTPs.
+ * subject/body are null with `content_expired: true` after retention.
+ */
+export const notificationChannelSchema = z.enum(["PUSH", "SMS", "EMAIL", "IN_APP"]);
+export const notificationClassificationSchema = z.enum(["NON_FINANCIAL", "FINANCIAL", "CONTRACTUAL", "KYC", "SECURITY", "COMPLAINT"]);
+export const notificationItemSchema = z.object({
+  id: z.string().uuid(),
+  channel: notificationChannelSchema,
+  subject: z.string().nullable(),
+  body: z.string().nullable(),
+  status: z.string(),
+  classification: notificationClassificationSchema,
+  read_at: z.string().nullable(),
+  created_at: z.string(),
+  content_expired: z.boolean().optional(),
+});
+export type NotificationItem = z.infer<typeof notificationItemSchema>;
+export type NotificationClassification = z.infer<typeof notificationClassificationSchema>;
+

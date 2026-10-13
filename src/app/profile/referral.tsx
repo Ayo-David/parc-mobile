@@ -3,6 +3,7 @@ import { ActivityIndicator, Share, StyleSheet, Text, View } from "react-native";
 import { useReferralSummary } from "@/api/queries/useReferralSummary";
 import { Button } from "@/components/Button/Button";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 import { formatMoney } from "@/utils/money";
@@ -43,14 +44,7 @@ export default function ReferralScreen() {
 
   const styles = StyleSheet.create({
     content: { flex: 1, paddingTop: theme.semanticSpacing.section, alignItems: "center", gap: theme.semanticSpacing.form },
-    codeCard: {
-      backgroundColor: theme.colors.secondary,
-      borderRadius: theme.radii.card,
-      padding: theme.semanticSpacing.card,
-      alignItems: "center",
-      gap: theme.spacing.sm,
-      width: "100%",
-    },
+    codeCard: { backgroundColor: theme.colors.secondary, borderRadius: theme.radii.card, padding: theme.semanticSpacing.card, alignItems: "center", gap: theme.spacing.sm, width: "100%" },
     codeLabel: { ...theme.typography.label, color: theme.colors.secondarySubtle },
     code: { ...theme.typography.h1, color: theme.colors.textInverse, letterSpacing: 2 },
     statsRow: { flexDirection: "row", gap: theme.semanticSpacing.section },
@@ -63,6 +57,7 @@ export default function ReferralScreen() {
   if (summary.isLoading) {
     return (
       <ScreenContainer>
+        <BackHeader title="Refer & Earn" />
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />
         </View>
@@ -78,6 +73,7 @@ export default function ReferralScreen() {
   if (!code) {
     return (
       <ScreenContainer>
+        <BackHeader title="Refer & Earn" />
         <View style={styles.content}>
           <Text style={styles.emptyText}>Referrals aren&apos;t available on your account yet.</Text>
         </View>
@@ -92,6 +88,7 @@ export default function ReferralScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader title="Refer & Earn" />
       <View style={styles.content}>
         <View style={styles.codeCard}>
           <Text style={styles.codeLabel}>Your referral code</Text>

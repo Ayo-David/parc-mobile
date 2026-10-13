@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { api } from "@/api/client";
@@ -46,8 +46,7 @@ export default function NewSupportTicketScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "New support ticket" }} />
-      <FormScreenLayout title="New support ticket" errorMessage={error} footer={<Button label="Send message" onPress={handleSend} disabled={!canSubmit} loading={isSubmitting} />}>
+      <FormScreenLayout headerTitle="New Ticket" title="New support ticket" errorMessage={error} footer={<Button label="Send message" onPress={handleSend} disabled={!canSubmit} loading={isSubmitting} />}>
         <TextField value={subject} onChangeText={setSubject} placeholder="Subject" autoFocus />
         <TextField value={message} onChangeText={setMessage} placeholder="Tell us what's happening..." multiline numberOfLines={4} />
       </FormScreenLayout>

@@ -72,7 +72,7 @@ export function TransactionRow({ transaction }: { transaction: Transaction }) {
       alignItems: "flex-end",
     },
     amount: {
-      ...theme.typography.text14BoldMono,
+      ...theme.typography.text14BoldFigure,
       color: amountColor,
     },
     statusLabel: {

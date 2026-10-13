@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -7,6 +7,7 @@ import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useSavingsRecordsStore } from "@/state/stores/savingsRecordsStore";
 import { useTheme } from "@/theme";
@@ -75,7 +76,7 @@ export default function GoalBreakScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: `Break ${goal.name}` }} />
+      <BackHeader title={`Break ${goal.name}`} />
       <View style={styles.content}>
         <View style={styles.warningCard}>
           <Text style={styles.warningTitle}>This can&apos;t be undone</Text>

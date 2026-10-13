@@ -47,11 +47,11 @@ export default function BillSuccessScreen() {
 
   function handleDone() {
     resetDraft();
-    router.replace("/(tabs)");
+    router.dismissTo("/(tabs)");
   }
 
   function handleTryAgain() {
-    router.replace({ pathname: "/bills/[category]", params: { category } });
+    router.dismissTo({ pathname: "/bills/[category]", params: { category } });
   }
 
   if (payment.isLoading || !payment.data) {

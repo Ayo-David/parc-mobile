@@ -75,7 +75,7 @@ export default function SavingsScreen() {
     },
     heroDecor: { position: "absolute", top: -30, right: -20, width: 120, height: 120, borderRadius: theme.radii.full, backgroundColor: withAlpha(theme.colors.success, 0.1) },
     heroLabel: { ...theme.typography.text12SemiBold, color: withAlpha(theme.colors.textInverse, 0.45) },
-    heroAmount: { ...theme.typography.text28ExtraBoldMono, color: theme.colors.textInverse, marginTop: theme.spacing.xs },
+    heroAmount: { ...theme.typography.text28ExtraBoldFigure, color: theme.colors.textInverse, marginTop: theme.spacing.xs },
     heroColumns: { flexDirection: "row", gap: theme.spacing.lg, marginTop: theme.spacing.lg },
     heroColumn: { gap: 2 },
     heroDivider: { width: 1, alignSelf: "stretch", backgroundColor: withAlpha(theme.colors.textInverse, 0.1) },
@@ -106,7 +106,7 @@ export default function SavingsScreen() {
     fdColumns: { flexDirection: "row", justifyContent: "space-between", marginTop: theme.spacing.md },
     fdColumn: { gap: 2 },
     fdColumnLabel: { ...theme.typography.text10p5Regular, color: theme.colors.textMuted },
-    fdColumnValueMono: { ...theme.typography.text16ExtraBoldMono, color: theme.colors.textPrimary },
+    fdColumnValueFigure: { ...theme.typography.text16ExtraBoldFigure, color: theme.colors.textPrimary },
     fdColumnValueRate: { ...theme.typography.text16ExtraBold, color: theme.colors.success },
     fdColumnValueInterest: { ...theme.typography.text14Bold, color: theme.colors.success },
     emptyText: { ...theme.typography.caption, color: theme.colors.textMuted, paddingTop: theme.spacing.md },
@@ -233,7 +233,7 @@ export default function SavingsScreen() {
                 <View style={styles.fdColumns}>
                   <View style={styles.fdColumn}>
                     <Text style={styles.fdColumnLabel}>Principal</Text>
-                    <Text style={styles.fdColumnValueMono}>{formatMoney({ amount_minor: query.data.principal_minor, currency: query.data.currency })}</Text>
+                    <Text style={styles.fdColumnValueFigure}>{formatMoney({ amount_minor: query.data.principal_minor, currency: query.data.currency })}</Text>
                   </View>
                   <View style={styles.fdColumn}>
                     <Text style={styles.fdColumnLabel}>Rate</Text>

@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useBeneficiaries } from "@/api/queries/useBeneficiaries";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { avatarColorFor, firstString, initialsFor } from "@/features/beneficiaries/fieldProbe";
 import { useTheme } from "@/theme";
@@ -52,7 +53,7 @@ export default function ManageBeneficiariesScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Manage Beneficiaries" }} />
+      <BackHeader title="Manage Beneficiaries" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {entries.length === 0 ? (
           <EmptyState emoji="👥" title="No saved beneficiaries" body="Beneficiaries you save while sending money will appear here." />

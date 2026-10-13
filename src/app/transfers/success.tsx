@@ -30,16 +30,16 @@ export default function TransferSuccessScreen() {
 
   function handleDone() {
     resetDraft();
-    router.replace("/(tabs)");
+    router.dismissTo("/(tabs)");
   }
 
   function handleBackToWallet() {
     resetDraft();
-    router.replace("/(tabs)");
+    router.dismissTo("/(tabs)");
   }
 
   function handleTryAgain() {
-    router.replace("/transfers");
+    router.dismissTo("/transfers");
   }
 
   if (transfer.isLoading || !transfer.data) {

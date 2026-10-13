@@ -1,9 +1,10 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { useSupportTickets } from "@/api/queries/useSupport";
 import { Button } from "@/components/Button/Button";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusBadge } from "@/components/StatusBadge/StatusBadge";
 import { firstString, ticketStatusTone } from "@/features/support/fieldProbe";
@@ -44,7 +45,7 @@ export default function SupportTicketsScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "My Support Tickets" }} />
+      <BackHeader title="My Support Tickets" />
       <View style={styles.content}>
         {ticketEntries.length === 0 ? (
           <EmptyState emoji="🎫" title="No tickets yet" body="Raise a new ticket and our support team will get back to you." />

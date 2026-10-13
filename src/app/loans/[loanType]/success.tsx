@@ -57,7 +57,7 @@ export default function LoanApplicationStatusScreen() {
 
   function handleDone() {
     resetDraft();
-    router.replace("/(tabs)/loans");
+    router.dismissTo("/(tabs)/loans");
   }
 
   const styles = StyleSheet.create({
@@ -89,7 +89,7 @@ export default function LoanApplicationStatusScreen() {
         title="Reviewing your application"
         money={money}
         detailLines={["This can take up to a few minutes.", "We'll notify you the moment there's a decision."]}
-        primaryAction={{ label: "Back to Loans", onPress: () => router.replace("/(tabs)/loans") }}
+        primaryAction={{ label: "Back to Loans", onPress: () => router.dismissTo("/(tabs)/loans") }}
       />
     );
   }
@@ -101,7 +101,7 @@ export default function LoanApplicationStatusScreen() {
         title="Application Declined"
         money={money}
         detailLines={["We couldn't approve this application right now."]}
-        primaryAction={{ label: "See other loan options", onPress: () => router.replace("/(tabs)/loans") }}
+        primaryAction={{ label: "See other loan options", onPress: () => router.dismissTo("/(tabs)/loans") }}
       >
         <View style={styles.card}>
           <Text style={styles.cardTitle}>What affected this decision</Text>

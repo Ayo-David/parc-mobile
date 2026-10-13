@@ -22,7 +22,7 @@ export default function SavingsActionSuccessScreen() {
       title={title ?? "Action Successful!"}
       money={amountMinor && currency ? { amount_minor: amountMinor, currency } : undefined}
       detailLines={detail ? [detail] : undefined}
-      primaryAction={{ label: "Done", onPress: () => router.replace("/(tabs)/savings") }}
+      primaryAction={{ label: "Done", onPress: () => router.dismissTo("/(tabs)/savings") }}
     />
   );
 }

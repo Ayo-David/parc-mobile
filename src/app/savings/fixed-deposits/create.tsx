@@ -73,7 +73,7 @@ export default function CreateFixedDepositScreen() {
         idempotencyKey: createIdempotencyKey(),
       });
       addFixedDeposit({ id: result.fixed_deposit_id });
-      router.replace("/(tabs)/savings");
+      router.dismissTo("/(tabs)/savings");
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : "We couldn't confirm this went through. Please check your savings tab before trying again.");
     } finally {
@@ -83,14 +83,14 @@ export default function CreateFixedDepositScreen() {
 
   if (!__DEV__) {
     return (
-      <FormScreenLayout title="Open a fixed deposit">
+      <FormScreenLayout headerTitle="Fixed Deposit" title="Open a fixed deposit">
         <Text style={{ ...theme.typography.bodyMedium, color: theme.colors.textSecondary }}>Fixed deposits aren't available yet in this build.</Text>
       </FormScreenLayout>
     );
   }
 
   return (
-    <FormScreenLayout
+    <FormScreenLayout headerTitle="Fixed Deposit"
       title="Open a fixed deposit"
       errorMessage={error}
       footer={quote ? <Button label="Confirm Fixed Deposit" onPress={handleConfirm} loading={isSubmitting} /> : <Button label="Get Quote" onPress={handleQuote} disabled={!canQuote} loading={isQuoting} />}

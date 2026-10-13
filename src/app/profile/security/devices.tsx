@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -9,6 +8,7 @@ import { useSecuritySummary } from "@/api/queries/useSecuritySummary";
 import { queryClient } from "@/api/queryClient";
 import { Button } from "@/components/Button/Button";
 import { EmptyState } from "@/components/EmptyState/EmptyState";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusBadge } from "@/components/StatusBadge/StatusBadge";
 import { useDeviceId } from "@/auth/useDeviceId";
@@ -92,7 +92,7 @@ export default function LinkedDevicesScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Linked Devices" }} />
+      <BackHeader title="Linked Devices" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.subtitle}>Devices with biometric login or a saved passcode for your account.</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}

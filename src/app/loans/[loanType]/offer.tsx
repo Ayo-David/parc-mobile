@@ -10,6 +10,7 @@ import { createIdempotencyKey } from "@/api/idempotency";
 import { useBootstrap } from "@/api/queries/useBootstrap";
 import type { LoanType } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { TransactionPinSheet } from "@/components/TransactionPinSheet/TransactionPinSheet";
 import { useTheme } from "@/theme";
@@ -94,7 +95,13 @@ export default function LoanOfferScreen() {
     row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: theme.semanticSpacing.form, borderBottomWidth: 1, borderBottomColor: theme.colors.divider },
     label: { ...theme.typography.bodyMedium, color: theme.colors.textSecondary },
     value: { ...theme.typography.bodyMedium, fontWeight: "600", color: theme.colors.textPrimary },
-    notice: { ...theme.typography.bodySmall, color: theme.colors.warning, backgroundColor: theme.components.status.warning.backgroundColor, borderRadius: theme.radii.card, padding: theme.semanticSpacing.form },
+    notice: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.warning,
+      backgroundColor: theme.components.status.warning.backgroundColor,
+      borderRadius: theme.radii.card,
+      padding: theme.semanticSpacing.form,
+    },
     error: { ...theme.typography.bodySmall, color: theme.colors.error },
     footer: { paddingTop: theme.semanticSpacing.component, paddingBottom: theme.semanticSpacing.component },
   });
@@ -102,6 +109,7 @@ export default function LoanOfferScreen() {
   if (offerQuery.isLoading) {
     return (
       <ScreenContainer>
+        <BackHeader title="Loan Offer" />
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />
         </View>
@@ -112,6 +120,7 @@ export default function LoanOfferScreen() {
   if (!offer) {
     return (
       <ScreenContainer>
+        <BackHeader title="Loan Offer" />
         <View style={styles.content}>
           <Text style={styles.subtitle}>We couldn&apos;t load your loan offer. Please try again shortly.</Text>
         </View>
@@ -121,6 +130,7 @@ export default function LoanOfferScreen() {
 
   return (
     <ScreenContainer>
+      <BackHeader title="Loan Offer" />
       <View style={styles.content}>
         <Text style={styles.title}>Your loan offer</Text>
         <Text style={styles.subtitle}>Review the repayment schedule below before accepting.</Text>
@@ -128,7 +138,10 @@ export default function LoanOfferScreen() {
         {scheduleRows.length > 0 ? (
           scheduleRows.map((row, index) => (
             <View style={styles.row} key={row.installment_number ?? index}>
-              <Text style={styles.label}>Installment {row.installment_number ?? index + 1}{row.due_date ? ` · ${row.due_date}` : ""}</Text>
+              <Text style={styles.label}>
+                Installment {row.installment_number ?? index + 1}
+                {row.due_date ? ` · ${row.due_date}` : ""}
+              </Text>
               <Text style={styles.value}>{row.total_minor ? formatMoney({ amount_minor: row.total_minor, currency: "NGN" }) : "—"}</Text>
             </View>
           ))
@@ -137,7 +150,9 @@ export default function LoanOfferScreen() {
         )}
 
         {!canAccept ? (
-          <Text style={styles.notice}>We can&apos;t confirm this offer&apos;s version details yet, so acceptance isn&apos;t available in this build. Please check back shortly or contact support.</Text>
+          <Text style={styles.notice}>
+            We can&apos;t confirm this offer&apos;s version details yet, so acceptance isn&apos;t available in this build. Please check back shortly or contact support.
+          </Text>
         ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>

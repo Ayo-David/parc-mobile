@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { randomUUID } from "expo-crypto";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -9,6 +9,7 @@ import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import type { MaturityInstruction } from "@/api/schemas";
 import { Button } from "@/components/Button/Button";
+import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
@@ -84,7 +85,7 @@ export default function FixedDepositInstructionScreen() {
 
   return (
     <ScreenContainer>
-      <Stack.Screen options={{ title: "Maturity instruction" }} />
+      <BackHeader title="Maturity instruction" />
       <View style={styles.content}>
         {OPTIONS.map((option) => {
           const isSelected = option.value === selected;

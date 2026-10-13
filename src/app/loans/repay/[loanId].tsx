@@ -95,7 +95,7 @@ export default function LoanRepaymentScreen() {
         tone="success"
         title="Repayment Successful!"
         money={{ amount_minor: amountMinor, currency: "NGN" }}
-        primaryAction={{ label: "Done", onPress: () => router.replace("/(tabs)/loans") }}
+        primaryAction={{ label: "Done", onPress: () => router.dismissTo("/(tabs)/loans") }}
       />
     );
   }
@@ -113,7 +113,7 @@ export default function LoanRepaymentScreen() {
   }
 
   return (
-    <FormScreenLayout
+    <FormScreenLayout headerTitle="Repay Loan"
       title="Repay loan"
       errorMessage={error}
       footer={

@@ -7,6 +7,6 @@ export function useStatement(statementId: string | null) {
     queryKey: ["statement", statementId],
     queryFn: () => api.getStatement(statementId!),
     enabled: statementId !== null,
-    refetchInterval: (query) => (query.state.data?.status === "ready" || query.state.data?.status === "failed" ? false : 3000),
+    refetchInterval: (query) => (query.state.data && ["ready", "failed", "expired"].includes(query.state.data.status) ? false : 3000),
   });
 }

@@ -153,13 +153,4 @@ export const fontFamilies = {
   semiBold: "PlusJakartaSans_600SemiBold",
   bold: "PlusJakartaSans_700Bold",
   extraBold: "PlusJakartaSans_800ExtraBold",
-  /**
-   * Restored 2026-09-20 (design-system.md §8) — loaded via
-   * @expo-google-fonts/jetbrains-mono, wired in app/_layout.tsx's
-   * useFonts. Only for the dashboard-density `*Mono` typography styles
-   * (money figures on the wallet Home screen); `amountXl` stays Plus
-   * Jakarta Sans per the still-standing §3 decision for that token.
-   */
-  mono: "JetBrainsMono_700Bold",
-  monoExtraBold: "JetBrainsMono_800ExtraBold",
 };

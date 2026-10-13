@@ -215,12 +215,13 @@ export const typography: Typography = {
     lineHeight: 20,
     letterSpacing: 0,
   },
-  text15RegularMono: {
-    fontFamily: fontFamilies.mono,
+  text15RegularFigure: {
+    fontFamily: fontFamilies.regular,
     fontWeight: "400",
     fontSize: 15,
     lineHeight: 22.5,
     letterSpacing: 0.75,
+    fontVariant: ["tabular-nums"],
   },
   text8MediumWide: {
     fontFamily: fontFamilies.medium,
@@ -368,15 +369,15 @@ export const typography: Typography = {
     lineHeight: 19.5,
     letterSpacing: 0,
   },
-  // JetBrains Mono restored 2026-09-20 (design-system.md §8) — confirmed
-  // live in the Figma production frame, not just the `digit-bd`/`amount-rg`
-  // bound variables.
-  text13ExtraBoldMono: {
-    fontFamily: fontFamilies.monoExtraBold,
+  // Amount/data figures: Plus Jakarta Sans with tabular numerals (PLAN.md THEME-02 —
+  // never JetBrains Mono, even where Figma's spec names it).
+  text13ExtraBoldFigure: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 13,
     lineHeight: 19.5,
     letterSpacing: 0,
+    fontVariant: ["tabular-nums"],
   },
   text13p5SemiBold: {
     fontFamily: fontFamilies.semiBold,
@@ -392,13 +393,13 @@ export const typography: Typography = {
     lineHeight: 21,
     letterSpacing: 0,
   },
-  // JetBrains Mono restored — see text13ExtraBoldMono note above.
-  text14BoldMono: {
-    fontFamily: fontFamilies.mono,
+  text14BoldFigure: {
+    fontFamily: fontFamilies.bold,
     fontWeight: "700",
     fontSize: 14,
     lineHeight: 21,
     letterSpacing: -0.28,
+    fontVariant: ["tabular-nums"],
   },
   text15Bold: {
     fontFamily: fontFamilies.bold,
@@ -423,13 +424,13 @@ export const typography: Typography = {
     lineHeight: 24,
     letterSpacing: -0.16,
   },
-  // JetBrains Mono restored — see text13ExtraBoldMono note above.
-  text15BoldMono: {
-    fontFamily: fontFamilies.mono,
+  text15BoldFigure: {
+    fontFamily: fontFamilies.bold,
     fontWeight: "700",
     fontSize: 15,
     lineHeight: 22.5,
     letterSpacing: 0.6,
+    fontVariant: ["tabular-nums"],
   },
   text18ExtraBold: {
     fontFamily: fontFamilies.extraBold,
@@ -446,44 +447,48 @@ export const typography: Typography = {
     lineHeight: 33,
     letterSpacing: -0.44,
   },
-  // Loan screen "Outstanding" amount (236:11517) — JetBrains Mono, see text13ExtraBoldMono note above.
-  text20ExtraBoldMono: {
-    fontFamily: fontFamilies.monoExtraBold,
+  // Loan screen "Outstanding" amount (236:11517)
+  text20ExtraBoldFigure: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 20,
     lineHeight: 30,
     letterSpacing: 0,
+    fontVariant: ["tabular-nums"],
   },
-  // Savings screen fixed-deposit "Principal" figure (239:14807) — JetBrains Mono.
-  text16ExtraBoldMono: {
-    fontFamily: fontFamilies.monoExtraBold,
+  // Savings screen fixed-deposit "Principal" figure (239:14807)
+  text16ExtraBoldFigure: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 16,
     lineHeight: 24,
     letterSpacing: 0,
+    fontVariant: ["tabular-nums"],
   },
-  // Savings screen "Total in Savings" hero figure (239:14651) — JetBrains Mono.
-  text28ExtraBoldMono: {
-    fontFamily: fontFamilies.monoExtraBold,
+  // Savings screen "Total in Savings" hero figure (239:14651)
+  text28ExtraBoldFigure: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 28,
     lineHeight: 42,
     letterSpacing: -0.56,
+    fontVariant: ["tabular-nums"],
   },
-  // Add Money screen's account-number figure (228:3786) — JetBrains Mono, wide positive tracking (for readability of a number meant to be copied), distinct from text28ExtraBoldMono's negative tracking.
-  text28ExtraBoldMonoWide: {
-    fontFamily: fontFamilies.monoExtraBold,
+  // Add Money screen's account-number figure (228:3786) — wide positive tracking (for readability of a number meant to be copied), distinct from text28ExtraBoldFigure's negative tracking.
+  text28ExtraBoldFigureWide: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 28,
     lineHeight: 42,
     letterSpacing: 1.12,
+    fontVariant: ["tabular-nums"],
   },
-  // JetBrains Mono restored — see text13ExtraBoldMono note above.
-  text30ExtraBoldMono: {
-    fontFamily: fontFamilies.monoExtraBold,
+  text30ExtraBoldFigure: {
+    fontFamily: fontFamilies.extraBold,
     fontWeight: "800",
     fontSize: 30,
     lineHeight: 45,
     letterSpacing: -0.9,
+    fontVariant: ["tabular-nums"],
   },
 };

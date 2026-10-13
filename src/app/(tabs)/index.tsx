@@ -245,7 +245,7 @@ export default function HomeScreen() {
             <Text style={styles.name}>{fullName}</Text>
           </View>
           <View style={styles.headerActions}>
-            <Pressable style={styles.bellButton} onPress={() => router.push("/profile/notifications")} accessibilityRole="button" accessibilityLabel="Notifications">
+            <Pressable style={styles.bellButton} onPress={() => router.push("/notifications")} accessibilityRole="button" accessibilityLabel="Notifications">
               <Ionicons name="notifications-outline" size={theme.icon.compact} color={theme.colors.textPrimary} />
               <View style={styles.bellDot} />
             </Pressable>
