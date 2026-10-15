@@ -1,4 +1,5 @@
 import { applyTenantOverrides, validateTenantThemeOverrides } from "../tenantTheme";
+import { darkTheme } from "../themes/darkTheme";
 import { defaultTheme } from "../themes/defaultTheme";
 
 describe("validateTenantThemeOverrides", () => {
@@ -70,5 +71,24 @@ describe("applyTenantOverrides", () => {
     const result = applyTenantOverrides(defaultTheme, {});
     expect(result.colors).toEqual(defaultTheme.colors);
     expect(result.radii).toEqual(defaultTheme.radii);
+  });
+});
+
+describe("applyTenantOverrides on the dark theme", () => {
+  const overrides = { primary: "#123456", primarySubtle: "#EEF3FA", secondary: "#00AA88", surface: "#FAFAFA" } as const;
+
+  it("applies only the brand accent so light-mode tenant surfaces don't leak into dark mode", () => {
+    const themed = applyTenantOverrides(darkTheme, overrides);
+
+    expect(themed.colors.secondary).toBe("#00AA88");
+    expect(themed.colors.primary).toBe(darkTheme.colors.primary);
+    expect(themed.colors.primarySubtle).toBe(darkTheme.colors.primarySubtle);
+    expect(themed.colors.surface).toBe(darkTheme.colors.surface);
+    expect(themed.components.status.success.backgroundColor).toBe(darkTheme.components.status.success.backgroundColor);
+  });
+
+  it("re-derives onPrimary when a light-mode tenant primary is applied", () => {
+    expect(applyTenantOverrides(defaultTheme, { primary: "#123456" }).colors.onPrimary).toBe("#FFFFFF");
+    expect(applyTenantOverrides(defaultTheme, { primary: "#FFD60A" }).colors.onPrimary).toBe("#000000");
   });
 });

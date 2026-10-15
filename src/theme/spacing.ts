@@ -1,5 +1,5 @@
-import { controlHeights, iconSizes, motionTokens, radiusScale, spacingScale } from "./primitives";
-import type { Elevation, IconSizes, MotionTokens, RadiusScale, SemanticSpacing, SpacingScale } from "./types";
+import { borderWidths, controlHeights, iconSizes, motionTokens, radiusScale, spacingScale } from "./primitives";
+import type { BorderWidths, Elevation, IconSizes, MotionTokens, RadiusScale, SemanticSpacing, SpacingScale } from "./types";
 
 export const spacing: SpacingScale = spacingScale;
 
@@ -15,6 +15,8 @@ export const semanticSpacing: SemanticSpacing = {
   component: 16,
   form: 12,
   list: 12,
+  authActions: 11,
+  keypadX: 18,
 };
 
 export const radii: RadiusScale = radiusScale;
@@ -22,6 +24,8 @@ export const radii: RadiusScale = radiusScale;
 export const icon: IconSizes = iconSizes;
 
 export const control = controlHeights;
+
+export const borderWidth: BorderWidths = borderWidths;
 
 export const motion: MotionTokens = motionTokens;
 

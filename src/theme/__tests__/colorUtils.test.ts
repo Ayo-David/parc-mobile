@@ -1,4 +1,4 @@
-import { isValidHexColor, withAlpha } from "../colorUtils";
+import { isValidHexColor, readableTextOn, withAlpha } from "../colorUtils";
 
 describe("isValidHexColor", () => {
   it("accepts 3, 6, and 8 digit hex colors", () => {
@@ -24,5 +24,14 @@ describe("withAlpha", () => {
   it("clamps alpha into the 0-1 range", () => {
     expect(withAlpha("#000000", 5)).toBe("rgba(0, 0, 0, 1)");
     expect(withAlpha("#000000", -1)).toBe("rgba(0, 0, 0, 0)");
+  });
+});
+
+describe("readableTextOn", () => {
+  it("picks white on dark backgrounds and black on light ones", () => {
+    expect(readableTextOn("#000000")).toBe("#FFFFFF");
+    expect(readableTextOn("#123456")).toBe("#FFFFFF");
+    expect(readableTextOn("#FFFFFF")).toBe("#000000");
+    expect(readableTextOn("#F5F5F5")).toBe("#000000");
   });
 });

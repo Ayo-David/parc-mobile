@@ -1,0 +1,27 @@
+# Parc Mobile — Theme & Styling Guardrails
+
+These rules are mandatory for every file under parc-mobile/src/ except src/theme/**.
+
+## Hard prohibitions
+
+1. No literal hex/rgb/rgba/hsl color values in component or screen code. Every color must come from useTheme().theme.colors.* or useTheme().theme.components.*.
+2. No literal numeric spacing, margin, padding, gap, or dimension values for anything that has a theme token (spacing scale, radii, control heights, icon sizes). Use theme.spacing.*, theme.semanticSpacing.*, theme.radii.*, theme.control.*, theme.icon.*.
+3. No literal fontSize/fontWeight/fontFamily/lineHeight/letterSpacing values. Use a named style from theme.typography.* (e.g. theme.typography.bodyMedium), spread directly into a Text style.
+4. No new ad hoc StyleSheet.create color/spacing/typography values duplicating what already exists in theme/componentStyles.ts. If a new visual variant is needed, add it to componentStyles.ts (or a new typed recipe file under theme/) rather than inlining it in a screen.
+5. No hardcoded tenant branding (a specific tenant's color, logo URL, or name) anywhere in feature/screen code. Tenant branding only ever flows through ThemeProvider's tenantBranding prop -> applyTenantOverrides.
+6. No direct AsyncStorage/SecureStore reads of theme preference outside theme/storage.ts and ThemeProvider.tsx.
+
+## Required patterns
+
+- Every component that renders color, spacing, or typography must call useTheme() and read from the returned theme object -- never import from theme/tokens.ts, theme/primitives.ts, theme/spacing.ts, or theme/typography.ts directly in a screen/component. Those modules are theme-internal; only theme/themes/*.ts, ThemeProvider.tsx, and tenantTheme.ts may import them.
+- Prefer composing existing theme.components.* recipes (button/input/status/card) before inventing a new one-off style object.
+- When a Figma value doesn't map to an existing token, add the token to the appropriate file in src/theme/ first (with a comment citing the Figma node id), then consume it -- never inline the raw value "just this once."
+
+## Exemptions
+
+- src/theme/** is the authorized single source of truth for literal token values and is exempt from rules 1-3 above (that's where those values must be defined).
+- Platform-required non-visual literals (hitSlop, testID strings, accessibility role/label strings, animation frame counts unrelated to theme.motion) are not covered by this file.
+
+## Enforcement
+
+Treat a hardcoded value outside src/theme/ as a defect to fix immediately, not a style nitpick -- it silently breaks tenant rebranding and dark-mode readiness. Before considering a screen done, grep for hex-color patterns and bare numeric literals inside style={{...}}/StyleSheet.create blocks outside src/theme/.

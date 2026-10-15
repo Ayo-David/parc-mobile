@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.parc.mobile",
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "Parc uses Face ID to let you sign in and authorize transactions quickly and securely."
       }
     },
     "android": {
@@ -37,6 +38,14 @@
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      "expo-secure-store",
+      "@sentry/react-native",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Parc needs camera access to verify your identity with a quick face scan."
         }
       ]
     ],

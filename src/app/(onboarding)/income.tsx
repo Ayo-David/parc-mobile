@@ -1,0 +1,127 @@
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { api } from "@/api/client";
+import { ApiError } from "@/api/errors";
+import { useBootstrap } from "@/api/queries/useBootstrap";
+import { useOnboardingReferenceData } from "@/api/queries/useOnboardingReferenceData";
+import { AuthButton } from "@/components/AuthButton/AuthButton";
+import { LabeledField } from "@/components/LabeledField/LabeledField";
+import { PickerField } from "@/components/PickerField/PickerField";
+import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
+import { OnboardingStepLayout } from "@/features/onboarding/OnboardingStepLayout";
+import { useTheme } from "@/theme";
+
+const OTHER_INCOME_CHOICES = [
+  { value: true, label: "Yes, I do" },
+  { value: false, label: "No, I don't" },
+];
+
+/**
+ * Figma "SourceOfIncome" (node 226:2078). The confirmed contract
+ * (`OnboardingIncome`) still types occupation/annual_income_band as
+ * free-text strings, but RESOLVED (PLAN.md "Real blockers"): the real
+ * `GET /v1/onboarding/reference-data` endpoint now exposes occupation and
+ * income-band lists, so this picks from that list instead of free text.
+ * Figma shows neither "other income" answer pre-selected, so the customer
+ * must pick one rather than the app defaulting to "No".
+ */
+export default function OnboardingIncomeScreen() {
+  const { theme } = useTheme();
+  const bootstrap = useBootstrap();
+  const referenceData = useOnboardingReferenceData(bootstrap.data?.tenant_id);
+  const advanceOnboarding = useAdvanceOnboarding();
+  const [occupation, setOccupation] = useState<string | null>(null);
+  const [annualIncomeBand, setAnnualIncomeBand] = useState<string | null>(null);
+  const [hasOtherIncome, setHasOtherIncome] = useState<boolean | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const occupationOptions = (referenceData.data?.occupations ?? []).map((value) => ({ value, label: value }));
+  const incomeBands = referenceData.data?.annual_income_bands ?? [];
+  const incomeBandOptions = incomeBands.map((band) => ({ value: band.code, label: band.label }));
+  const selectedBand = incomeBands.find((band) => band.code === annualIncomeBand) ?? null;
+
+  const canContinue = !!occupation && !!selectedBand && hasOtherIncome !== null;
+
+  async function handleSubmit() {
+    if (!canContinue || !occupation || !selectedBand || hasOtherIncome === null) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await api.submitOnboardingIncome({ occupation, annualIncomeBand: selectedBand.label, hasOtherIncome });
+      await advanceOnboarding();
+    } catch (submitError) {
+      setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const recipe = theme.components.optionCard;
+  const styles = StyleSheet.create({
+    fields: {
+      gap: theme.spacing.md + 2,
+    },
+    choiceRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm + 2,
+      marginTop: theme.spacing.xs,
+    },
+    choice: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md + 2,
+      borderRadius: theme.radii.button,
+      borderWidth: theme.borderWidth.thin,
+    },
+    choiceLabel: {
+      ...theme.typography.text14Medium,
+      color: theme.colors.textPrimary,
+    },
+  });
+
+  return (
+    <OnboardingStepLayout
+      icon="briefcase-outline"
+      title={"Tell us about\nyour income."}
+      subtitle="This helps us offer you the right financial products"
+      errorMessage={error}
+      footer={<AuthButton label="Almost there →" onPress={handleSubmit} disabled={!canContinue} loading={isSubmitting} />}
+    >
+      <View style={styles.fields}>
+        <LabeledField label="What's your occupation?">
+          <PickerField placeholder="Select occupation" options={occupationOptions} selectedValue={occupation} searchable onSelect={(option) => setOccupation(option.value)} />
+        </LabeledField>
+        <LabeledField label="What's your annual income?">
+          <PickerField placeholder="Select income range" options={incomeBandOptions} selectedValue={annualIncomeBand} onSelect={(option) => setAnnualIncomeBand(option.value)} />
+        </LabeledField>
+        <LabeledField label="Do you have other sources of income?">
+          <View style={styles.choiceRow} accessibilityRole="radiogroup">
+            {OTHER_INCOME_CHOICES.map((choice) => {
+              const selected = hasOtherIncome === choice.value;
+              return (
+                <Pressable
+                  key={choice.label}
+                  onPress={() => setHasOtherIncome(choice.value)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  style={[
+                    styles.choice,
+                    {
+                      backgroundColor: selected ? recipe.selectedBackgroundColor : recipe.backgroundColor,
+                      borderColor: selected ? recipe.selectedBorderColor : recipe.borderColor,
+                    },
+                  ]}
+                >
+                  <Text style={styles.choiceLabel}>{choice.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </LabeledField>
+      </View>
+    </OnboardingStepLayout>
+  );
+}
