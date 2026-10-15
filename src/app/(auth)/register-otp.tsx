@@ -149,7 +149,7 @@ export default function RegisterOtpScreen() {
     },
     authButtonLabel: {
       ...theme.typography.button,
-      color: theme.colors.textInverse,
+      color: code.length === CODE_LENGTH ? theme.colors.onPrimary : theme.colors.textDisabled,
     },
     helpRow: {
       alignItems: "center",

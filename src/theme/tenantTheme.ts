@@ -1,5 +1,5 @@
 import { buildComponentStyles } from "./componentStyles";
-import { isValidHexColor } from "./colorUtils";
+import { isValidHexColor, readableTextOn } from "./colorUtils";
 import type { HexColor, ParcTheme, TenantThemeOverrides, UnvalidatedTenantThemeInput } from "./types";
 
 const MIN_RADIUS = 0;
@@ -93,17 +93,25 @@ export function validateTenantThemeOverrides(input: UnvalidatedTenantThemeInput 
  * security-relevant token even if `overrides` somehow contained one.
  * Component style recipes are rebuilt from the merged colors so branded
  * buttons/status chips/cards reflect the tenant's palette correctly.
+ *
+ * Tenant colors are authored against the light theme, so on a dark base
+ * only `secondary` (the brand accent) is applied: a tenant's dark `primary`
+ * would vanish against a dark background, and its pastel subtle/surface
+ * colors would turn dark-mode surfaces light. `onPrimary` is re-derived
+ * whenever `primary` changes so button labels stay legible.
  */
 export function applyTenantOverrides(baseTheme: ParcTheme, overrides: TenantThemeOverrides): ParcTheme {
+  const isLight = baseTheme.mode === "light";
+  const primary = isLight ? overrides.primary : undefined;
   const colors = {
     ...baseTheme.colors,
-    ...(overrides.primary !== undefined && { primary: overrides.primary }),
-    ...(overrides.primaryHover !== undefined && { primaryHover: overrides.primaryHover }),
-    ...(overrides.primarySubtle !== undefined && { primarySubtle: overrides.primarySubtle }),
+    ...(primary !== undefined && { primary, onPrimary: readableTextOn(primary) }),
+    ...(isLight && overrides.primaryHover !== undefined && { primaryHover: overrides.primaryHover }),
+    ...(isLight && overrides.primarySubtle !== undefined && { primarySubtle: overrides.primarySubtle }),
     ...(overrides.secondary !== undefined && { secondary: overrides.secondary }),
-    ...(overrides.secondarySubtle !== undefined && { secondarySubtle: overrides.secondarySubtle }),
-    ...(overrides.surface !== undefined && { surface: overrides.surface }),
-    ...(overrides.surfaceAlt !== undefined && { surfaceAlt: overrides.surfaceAlt }),
+    ...(isLight && overrides.secondarySubtle !== undefined && { secondarySubtle: overrides.secondarySubtle }),
+    ...(isLight && overrides.surface !== undefined && { surface: overrides.surface }),
+    ...(isLight && overrides.surfaceAlt !== undefined && { surfaceAlt: overrides.surfaceAlt }),
   };
 
   const radii = {
@@ -125,7 +133,7 @@ export function applyTenantOverrides(baseTheme: ParcTheme, overrides: TenantThem
     ...baseTheme,
     colors,
     radii,
-    components: buildComponentStyles(colors, radii),
+    components: buildComponentStyles(colors, radii, baseTheme.mode),
     branding,
   };
 }

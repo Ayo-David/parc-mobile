@@ -18,6 +18,29 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The BFF answers 503 WALLET_NOT_PROVISIONED in the few seconds after
+ * onboarding completes, before Ledger has created the customer's wallet
+ * from the onboarding-completed event. It's a transient state, not a failure.
+ */
+export function isWalletNotProvisioned(error: unknown): boolean {
+  return error instanceof ApiError && error.code === "WALLET_NOT_PROVISIONED";
+}
+
+/**
+ * Why `GET /v1/wallet/funding-details` has no account to show yet:
+ * "none" (never requested; ask for BVN + bank account), "pending" (Paystack
+ * is validating/opening it; poll) or "rejected" (show the message, allow a
+ * retry). Null for any other failure.
+ */
+export function fundingAccountSetupState(error: unknown): "none" | "pending" | "rejected" | null {
+  if (!(error instanceof ApiError)) return null;
+  if (error.code === "FUNDING_ACCOUNT_NOT_FOUND") return "none";
+  if (error.code === "FUNDING_ACCOUNT_PENDING") return "pending";
+  if (error.code === "FUNDING_ACCOUNT_REJECTED") return "rejected";
+  return null;
+}
+
 export function categorizeStatus(status: number): ApiErrorCategory {
   if (status === 401) return "authentication";
   if (status === 403) return "authorization";

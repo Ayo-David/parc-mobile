@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import { Button } from "@/components/Button/Button";
-import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
+import { AuthButton } from "@/components/AuthButton/AuthButton";
+import { OptionCard } from "@/components/OptionCard/OptionCard";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
+import { OnboardingStepLayout } from "@/features/onboarding/OnboardingStepLayout";
+import { useTheme } from "@/theme";
 
 /**
  * Figma "PEPVerification" (node 226:2013). The confirmed contract is a
@@ -14,11 +17,14 @@ import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
  * this app screen).
  */
 export default function OnboardingComplianceScreen() {
+  const { theme } = useTheme();
   const advanceOnboarding = useAdvanceOnboarding();
+  const [isPep, setIsPep] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAnswer(isPep: boolean) {
+  async function handleSubmit() {
+    if (isPep === null) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -31,17 +37,39 @@ export default function OnboardingComplianceScreen() {
     }
   }
 
+  const styles = StyleSheet.create({
+    options: {
+      gap: theme.semanticSpacing.authActions,
+    },
+    notice: {
+      backgroundColor: theme.components.status.warning.backgroundColor,
+      borderRadius: theme.radii.md,
+      paddingHorizontal: theme.spacing.md + 2,
+      paddingVertical: theme.semanticSpacing.authActions,
+      marginTop: theme.spacing.md + 2,
+    },
+    noticeText: {
+      ...theme.typography.text12Regular,
+      color: theme.colors.warningStrong,
+    },
+  });
+
   return (
-    <FormScreenLayout
-      title="Are you a politically exposed person?"
-      subtitle="This includes senior government, military, or judicial officials, and their close family members or associates."
+    <OnboardingStepLayout
+      step={6}
+      icon="shield-outline"
+      title={"Are you a Politically\nExposed Person?"}
+      subtitle="A PEP holds or has held a prominent public function, or is closely associated with such a person"
       errorMessage={error}
-      footer={
-        <>
-          <Button label="No" onPress={() => handleAnswer(false)} loading={isSubmitting} />
-          <Button label="Yes" variant="secondary" onPress={() => handleAnswer(true)} loading={isSubmitting} />
-        </>
-      }
-    />
+      footer={<AuthButton label="Continue →" onPress={handleSubmit} disabled={isPep === null} loading={isSubmitting} />}
+    >
+      <View style={styles.options}>
+        <OptionCard emoji="🏛️" title="Yes, I am" description="I hold or have held a public position" selected={isPep === true} onPress={() => setIsPep(true)} disabled={isSubmitting} />
+        <OptionCard emoji="👤" title="No, I'm not" description="I am a private individual" selected={isPep === false} onPress={() => setIsPep(false)} disabled={isSubmitting} />
+      </View>
+      <View style={styles.notice}>
+        <Text style={styles.noticeText}>Required by CBN AML/CFT regulations</Text>
+      </View>
+    </OnboardingStepLayout>
   );
 }

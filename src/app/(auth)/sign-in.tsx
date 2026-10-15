@@ -52,7 +52,7 @@ export default function SignInOptionsScreen() {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.lg,
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.surfaceInverse,
       borderRadius: theme.radii.card,
       paddingHorizontal: theme.spacing.xl,
       paddingVertical: theme.spacing.lg,

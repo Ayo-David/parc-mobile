@@ -18,12 +18,13 @@ type IconName = ComponentProps<typeof Ionicons>["name"];
 type Tint = "neutral" | "magenta" | "info" | "success" | "warning";
 
 // Figma "MeScreen" menu (233:7677–233:7730): tinted 42px icon tiles. Manage
-// Beneficiaries is a real feature Figma doesn't list, added in the same style.
+// Beneficiaries and Appearance are real features Figma doesn't list, added in the same style.
 const MENU_ITEMS: { label: string; icon: IconName; tint: Tint; href: Href }[] = [
   { label: "Edit Profile", icon: "person-outline", tint: "neutral", href: "/profile/edit" },
   { label: "Refer & Earn", icon: "gift-outline", tint: "magenta", href: "/profile/referral" },
   { label: "Notifications", icon: "notifications-outline", tint: "info", href: "/profile/notifications" },
   { label: "Security & Privacy", icon: "shield-checkmark-outline", tint: "success", href: "/profile/security" },
+  { label: "Appearance", icon: "contrast-outline", tint: "neutral", href: "/profile/appearance" },
   { label: "Manage Beneficiaries", icon: "people-outline", tint: "neutral", href: "/beneficiaries" },
   { label: "Help & Support", icon: "help-circle-outline", tint: "warning", href: "/profile/support" },
 ];
@@ -159,7 +160,7 @@ export default function MeScreen() {
         </View>
 
         <Pressable onPress={() => router.push("/profile/limits")} accessibilityRole="button" accessibilityLabel="Account limits">
-          <LinearGradient colors={[theme.colors.primary, theme.colors.surfaceInverse]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.limitsCard}>
+          <LinearGradient colors={[theme.colors.mediaBackground, theme.colors.surfaceInverse]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.limitsCard}>
             <View style={styles.limitsIcon}>
               <Ionicons name="star-outline" size={theme.icon.compact} color={theme.colors.textInverse} />
             </View>

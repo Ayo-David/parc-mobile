@@ -182,7 +182,7 @@ export default function LoanProductScreen() {
     selected: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
     chipLabel: { ...theme.typography.text12Bold, color: theme.colors.textSecondary },
     optionLabel: { ...theme.typography.text14Bold, color: theme.colors.textSecondary },
-    selectedLabel: { color: theme.colors.textInverse },
+    selectedLabel: { color: theme.colors.onPrimary },
     fieldGap: { gap: theme.spacing.md },
     quoteCard: {
       marginTop: theme.spacing.lg,
@@ -208,7 +208,7 @@ export default function LoanProductScreen() {
       justifyContent: "center",
       backgroundColor: canApply ? theme.colors.primary : theme.colors.disabledSurface,
     },
-    applyLabel: { ...theme.typography.text15Bold, color: canApply ? theme.colors.textInverse : theme.colors.textDisabled },
+    applyLabel: { ...theme.typography.text15Bold, color: canApply ? theme.colors.onPrimary : theme.colors.textDisabled },
     centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: theme.spacing.md },
     notice: { ...theme.typography.text14Regular, color: theme.colors.textMuted, textAlign: "center" },
   });

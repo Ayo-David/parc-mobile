@@ -72,7 +72,7 @@ export default function LoginIdentifierScreen() {
     },
     nextButtonLabel: {
       ...theme.typography.button,
-      color: theme.colors.textInverse,
+      color: identifier.trim().length >= 3 ? theme.colors.onPrimary : theme.colors.textDisabled,
     },
     recoverRow: {
       alignItems: "center",

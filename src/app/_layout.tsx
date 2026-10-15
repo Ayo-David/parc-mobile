@@ -11,8 +11,10 @@ import { PlusJakartaSans_800ExtraBold } from "@expo-google-fonts/plus-jakarta-sa
 import { useFonts } from "expo-font";
 import { QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
-import { Stack } from "expo-router";
-import { useEffect } from "react";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavigationThemeProvider } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { Linking, Platform } from "react-native";
 
 import { useBootstrap } from "@/api/queries/useBootstrap";
@@ -28,7 +30,7 @@ import { useOnboardingStatus } from "@/features/onboarding/useOnboardingStatus";
 import { reportError } from "@/observability/reportError";
 import { initSentry } from "@/observability/sentry";
 import { useSessionStore } from "@/state/stores/sessionStore";
-import { ThemeProvider, asyncStorageThemeAdapter } from "@/theme";
+import { ThemeProvider, asyncStorageThemeAdapter, useTheme } from "@/theme";
 
 initSentry();
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -37,13 +39,52 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <ThemeProvider storageAdapter={asyncStorageThemeAdapter}>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <AppGate />
-          </AuthProvider>
-        </QueryClientProvider>
+        <NavigationThemeBridge>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <AppGate />
+            </AuthProvider>
+          </QueryClientProvider>
+        </NavigationThemeBridge>
       </ThemeProvider>
     </ErrorBoundary>
+  );
+}
+
+/**
+ * Feeds the Parc theme into React Navigation (screen/transition backgrounds)
+ * and the native root view, and sets the default status bar for the
+ * resolved mode. Screens with always-dark chrome still override the status
+ * bar locally.
+ */
+function NavigationThemeBridge({ children }: { children: ReactNode }) {
+  const { theme, themeMode } = useTheme();
+
+  const navigationTheme = useMemo(() => {
+    const base = themeMode === "dark" ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.colors.primary,
+        background: theme.colors.background,
+        card: theme.colors.surface,
+        text: theme.colors.textPrimary,
+        border: theme.colors.border,
+        notification: theme.colors.error,
+      },
+    };
+  }, [theme, themeMode]);
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.colors.background).catch(() => {});
+  }, [theme.colors.background]);
+
+  return (
+    <NavigationThemeProvider value={navigationTheme}>
+      <StatusBar style={themeMode === "dark" ? "light" : "dark"} />
+      {children}
+    </NavigationThemeProvider>
   );
 }
 
@@ -61,11 +102,12 @@ function AppGate() {
   const profile = useProfile();
   const sessionExpired = useSessionStore((state) => state.sessionExpired);
   const setSessionExpired = useSessionStore((state) => state.setSessionExpired);
+  const { isThemeHydrated } = useTheme();
   // A font-load failure shouldn't block the app — RN falls back to the OS
   // system font for an unresolved fontFamily name, so treat "settled"
   // (loaded or errored) as ready rather than hanging on the splash screen.
   const fontsSettled = fontsLoaded || !!fontError;
-  const isReady = fontsSettled && auth.isHydrated && !bootstrap.isLoading && (!auth.isAuthenticated || !onboarding.isLoading);
+  const isReady = fontsSettled && isThemeHydrated && auth.isHydrated && !bootstrap.isLoading && (!auth.isAuthenticated || !onboarding.isLoading);
 
   useEffect(() => {
     if (fontError) {

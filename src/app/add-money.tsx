@@ -5,9 +5,11 @@ import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { fundingAccountSetupState } from "@/api/errors";
 import { useWalletFundingDetails } from "@/api/queries/useWalletFundingDetails";
 import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
+import { FundingAccountSetup } from "@/features/wallet/FundingAccountSetup";
 import { useTheme, withAlpha } from "@/theme";
 
 /**
@@ -23,7 +25,9 @@ import { useTheme, withAlpha } from "@/theme";
  * drop two real Figma rows or fake a payment flow with no backend behind
  * it, they're shown (visual parity) but disclose "coming soon" on tap —
  * the same honesty pattern already used for biometric login/reset
- * elsewhere in this app.
+ * elsewhere in this app. Until the customer has an account number, the
+ * card is replaced by `FundingAccountSetup` (BVN + bank account for
+ * Paystack's validation, then a "setting up" state while it's opened).
  */
 export default function AddMoneyScreen() {
   const { theme } = useTheme();
@@ -31,6 +35,7 @@ export default function AddMoneyScreen() {
   const funding = useWalletFundingDetails();
   const [justCopied, setJustCopied] = useState(false);
   const fundingData = funding.data;
+  const setupState = fundingAccountSetupState(funding.error);
   const recipe = theme.components.walletCard;
 
   async function handleCopy() {
@@ -78,7 +83,9 @@ export default function AddMoneyScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <BackHeader title="Add Money" />
 
-      {!fundingData ? (
+      {setupState ? (
+        <FundingAccountSetup state={setupState} rejectionMessage={funding.error?.message} />
+      ) : !fundingData ? (
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />
         </View>

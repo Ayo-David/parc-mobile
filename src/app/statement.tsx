@@ -58,7 +58,7 @@ export default function StatementScreen() {
     option: { width: "48.5%", alignItems: "center", paddingVertical: theme.spacing.md + 1, borderRadius: theme.radii.input, borderWidth: theme.borderWidth.thin, borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
     optionSelected: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
     optionLabel: { ...theme.typography.text13SemiBold, color: theme.colors.textPrimary },
-    optionLabelSelected: { color: theme.colors.textInverse },
+    optionLabelSelected: { color: theme.colors.onPrimary },
     formatOption: { width: "48.5%", alignItems: "center", paddingVertical: theme.spacing.lg, borderRadius: theme.radii.input, borderWidth: theme.borderWidth.thin, borderColor: theme.colors.primary, backgroundColor: theme.colors.surface },
     formatLabel: { ...theme.typography.text15Bold, color: theme.colors.textPrimary },
     note: { ...theme.typography.text12Regular, color: theme.colors.textMuted, marginTop: theme.spacing.sm },

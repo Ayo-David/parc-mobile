@@ -156,7 +156,7 @@ export default function TransactionHistoryScreen() {
                 style={[
                   styles.filterLabel,
                   {
-                    color: isActive ? theme.colors.textInverse : theme.colors.textSecondary,
+                    color: isActive ? theme.colors.onPrimary : theme.colors.textSecondary,
                   },
                 ]}
               >

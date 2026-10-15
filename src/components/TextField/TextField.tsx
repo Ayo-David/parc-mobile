@@ -5,9 +5,11 @@ import type { InputState } from "@/theme";
 
 export interface TextFieldProps extends Omit<TextInputProps, "style"> {
   state?: Exclude<InputState, "disabled">;
+  /** "figure": wide-tracked 20px digits for ID-number entry (Figma NIN input 226:1863). */
+  textVariant?: "default" | "figure";
 }
 
-export function TextField({ state = "default", editable = true, ...inputProps }: TextFieldProps) {
+export function TextField({ state = "default", textVariant = "default", editable = true, ...inputProps }: TextFieldProps) {
   const { theme } = useTheme();
   const recipe = theme.components.input[editable ? state : "disabled"];
 
@@ -21,7 +23,7 @@ export function TextField({ state = "default", editable = true, ...inputProps }:
       color: recipe.textColor,
       paddingHorizontal: theme.semanticSpacing.form,
       opacity: recipe.opacity,
-      ...theme.typography.bodyMedium,
+      ...(textVariant === "figure" ? theme.typography.text20RegularWide : theme.typography.bodyMedium),
     },
   });
 

@@ -91,6 +91,8 @@ export const radiusScale = {
   quickAction: 18,
   cardLg: 24,
   pad: 17,
+  // Selectable option cards (PEP Yes/No, Figma 226:2053).
+  option: 18,
 } as const;
 
 export const iconSizes = {
@@ -116,7 +118,10 @@ export const controlHeights = {
   iconButtonLarge: 56,
   // The circular status-icon badge on Liveness/result screens (Figma nodes 425:56, 426:158, 426:219, 426:268 and their siblings in later gap-closure phases).
   iconButtonXl: 64,
-  input: 56,
+  // 54, not 56 — confirmed 2026-10-14 on PhoneEmailLogin (226:1546) and every onboarding form input (226:1756, 226:1862, 226:1972, 226:2001).
+  input: 54,
+  // Rounded-square hero icon tile above onboarding headings (NIN 226:1847, PEP 226:2045, Income 226:2102).
+  iconTile: 52,
   // Corrected 2026-09-20 against a live production OTP screen (226:2398-404).
   otpBoxWidth: 44,
   otpBoxHeight: 56,

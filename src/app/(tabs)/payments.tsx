@@ -31,7 +31,7 @@ export default function PaymentsScreen() {
   const beneficiaries = useBeneficiaries();
   const beneficiariesData = beneficiaries.data;
 
-  const avatarPalette = [theme.colors.secondary, theme.colors.primary, theme.colors.success, theme.colors.info, theme.colors.warning];
+  const avatarPalette = [theme.colors.secondary, theme.colors.surfaceInverse, theme.colors.success, theme.colors.info, theme.colors.warning];
 
   const billCategories: { key: string; label: string; icon: keyof typeof Ionicons.glyphMap; bg: string; border: string; route: string }[] = [
     { key: "airtime", label: "Airtime", icon: "call-outline", bg: theme.components.status.warning.backgroundColor, border: theme.components.status.warning.borderColor, route: "/bills/airtime" },

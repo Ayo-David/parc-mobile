@@ -11,7 +11,7 @@ const parcLogo = require("../../../assets/images/parc-logo.png");
 /**
  * Figma "GetStarted" (node 226:1408) — full-bleed black hero screen, a
  * one-off "content-driven dark chrome" treatment (same category as the
- * Liveness camera screens' `surfaceInverse`/`overlayOnMedia`), not the
+ * Liveness camera screens' `mediaBackground`/`overlayOnMedia`), not the
  * app's light theme. Icons are Ionicons (documented placeholder iconset,
  * design-system.md §9) in place of Figma's raw emoji glyphs, per request.
  */
@@ -21,7 +21,7 @@ export default function GetStartedScreen() {
 
   const styles = StyleSheet.create({
     screen: {
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.mediaBackground,
       paddingHorizontal: 0,
     },
     logoRow: {
@@ -79,8 +79,9 @@ export default function GetStartedScreen() {
       borderRadius: theme.radii.lg,
       alignItems: "center",
       justifyContent: "center",
-      // Figma's rgba(247,247,247,0.14) — 247,247,247 is exactly colors.background.
-      backgroundColor: withAlpha(theme.colors.background, 0.14),
+      // Figma's rgba(247,247,247,0.14). textInverse rather than colors.background,
+      // which goes near-black in dark mode; this screen is always dark.
+      backgroundColor: withAlpha(theme.colors.textInverse, 0.14),
     },
     authButtonOutline: {
       height: theme.control.authButton,

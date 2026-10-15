@@ -1,6 +1,39 @@
 import { withAlpha } from "./colorUtils";
 import { control, elevation, radii as defaultRadii, semanticSpacing } from "./spacing";
-import type { ComponentStyles, RadiusScale, SemanticColors } from "./types";
+import type { ComponentStyles, HexColor, RadiusScale, SemanticColors, StatusTone, ThemeMode } from "./types";
+
+/**
+ * Mode-specific one-off literals that don't belong in SemanticColors. Light
+ * values are Figma's; dark values are derived (no dark group exists in Figma).
+ */
+const modeLiterals: Record<
+  ThemeMode,
+  {
+    statusBackground: Record<StatusTone, HexColor>;
+    pinDotBorder: HexColor;
+    walletGradient: readonly [HexColor, HexColor, HexColor];
+    heroDarkGradient: readonly [HexColor, HexColor];
+  }
+> = {
+  light: {
+    statusBackground: { success: "#D0F7EE", warning: "#FEF2D8", error: "#FDE8E8", info: "#E8F2FD" },
+    pinDotBorder: "#D9D9D9",
+    // Figma HomeScreen 226:3106 — #0A0A0A → #1A1A1A → #000000.
+    walletGradient: ["#0A0A0A", "#1A1A1A", "#000000"],
+    // Figma PasscodeSuccess 226:2328 — linear-gradient(135deg, #000000, #2E2E2E).
+    heroDarkGradient: ["#000000", "#2E2E2E"],
+  },
+  dark: {
+    statusBackground: { success: "#0B2A22", warning: "#2E2410", error: "#2E1414", info: "#10213A" },
+    pinDotBorder: "#3D3D3D",
+    // Lifted off the near-black background so the card still reads as raised.
+    walletGradient: ["#262626", "#1C1C1C", "#121212"],
+    heroDarkGradient: ["#262626", "#121212"],
+  },
+};
+
+const shadowBlack: HexColor = "#000000";
+const rawWhite: HexColor = "#FFFFFF";
 
 /**
  * Typed style recipes for recurring component patterns identified in Figma
@@ -23,7 +56,8 @@ import type { ComponentStyles, RadiusScale, SemanticColors } from "./types";
  *   12%-alpha wash of the tone color; alert borders are the tone color at
  *   13% alpha.
  */
-export function buildComponentStyles(colors: SemanticColors, radii: RadiusScale = defaultRadii): ComponentStyles {
+export function buildComponentStyles(colors: SemanticColors, radii: RadiusScale = defaultRadii, mode: ThemeMode = "light"): ComponentStyles {
+  const literals = modeLiterals[mode];
   const disabledButtonState = { backgroundColor: colors.disabledSurface, textColor: colors.textDisabled, borderColor: colors.disabledBorder, opacity: 1 } as const;
 
   return {
@@ -34,9 +68,9 @@ export function buildComponentStyles(colors: SemanticColors, radii: RadiusScale 
     },
     button: {
       primary: {
-        default: { backgroundColor: colors.primary, textColor: colors.textInverse, borderColor: "transparent", opacity: 1 },
-        hover: { backgroundColor: colors.primaryHover, textColor: colors.textInverse, borderColor: "transparent", opacity: 1 },
-        pressed: { backgroundColor: colors.primaryHover, textColor: colors.textInverse, borderColor: "transparent", opacity: 0.9 },
+        default: { backgroundColor: colors.primary, textColor: colors.onPrimary, borderColor: "transparent", opacity: 1 },
+        hover: { backgroundColor: colors.primaryHover, textColor: colors.onPrimary, borderColor: "transparent", opacity: 1 },
+        pressed: { backgroundColor: colors.primaryHover, textColor: colors.onPrimary, borderColor: "transparent", opacity: 0.9 },
         disabled: disabledButtonState,
       },
       secondary: {
@@ -77,10 +111,10 @@ export function buildComponentStyles(colors: SemanticColors, radii: RadiusScale 
       disabled: { backgroundColor: colors.background, borderColor: colors.border, textColor: colors.textDisabled, opacity: 1 },
     },
     status: {
-      success: { backgroundColor: "#D0F7EE", textColor: colors.success, borderColor: withAlpha(colors.success, 0.13) },
-      warning: { backgroundColor: "#FEF2D8", textColor: colors.warning, borderColor: withAlpha(colors.warning, 0.13) },
-      error: { backgroundColor: "#FDE8E8", textColor: colors.error, borderColor: withAlpha(colors.error, 0.13) },
-      info: { backgroundColor: "#E8F2FD", textColor: colors.info, borderColor: withAlpha(colors.info, 0.13) },
+      success: { backgroundColor: literals.statusBackground.success, textColor: colors.success, borderColor: withAlpha(colors.success, 0.13) },
+      warning: { backgroundColor: literals.statusBackground.warning, textColor: colors.warning, borderColor: withAlpha(colors.warning, 0.13) },
+      error: { backgroundColor: literals.statusBackground.error, textColor: colors.error, borderColor: withAlpha(colors.error, 0.13) },
+      info: { backgroundColor: literals.statusBackground.info, textColor: colors.info, borderColor: withAlpha(colors.info, 0.13) },
     },
     card: {
       backgroundColor: colors.surface,
@@ -88,24 +122,69 @@ export function buildComponentStyles(colors: SemanticColors, radii: RadiusScale 
       padding: semanticSpacing.card,
       shadow: elevation.sm,
     },
-    // Figma HomeScreen 226:3106 — reuses existing dark-scale tokens for the
-    // 3 gradient stops rather than new literals (surfaceInverse=#0A0A0A,
-    // primaryHover=#1A1A1A, primary=#000000 already match exactly).
+    // Figma HomeScreen 226:3106. Not derived from primary/surfaceInverse:
+    // those flip in dark mode, but the card must stay dark under textInverse.
     walletCard: {
-      gradientColors: [colors.surfaceInverse, colors.primaryHover, colors.primary],
+      gradientColors: literals.walletGradient,
       gradientLocations: [0.0617, 0.5877, 0.9383],
       gradientStart: { x: 0.26, y: 0.06 },
       gradientEnd: { x: 0.74, y: 0.94 },
       radius: radii.cardLg,
-      shadow: { shadowColor: colors.primary, shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.3, shadowRadius: 60, elevation: 16 },
+      shadow: { shadowColor: shadowBlack, shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.3, shadowRadius: 60, elevation: 16 },
     },
     pinPad: {
       dotSize: 16,
       dotBorderWidth: 2.5,
-      dotBorderColor: "#D9D9D9",
+      dotBorderColor: literals.pinDotBorder,
       dotFilledColor: colors.primary,
       keyBackground: colors.primarySubtle,
       keyRadius: radii.pad,
+    },
+    onMedia: {
+      buttonBackground: withAlpha(rawWhite, 0.1),
+      buttonBorder: withAlpha(rawWhite, 0.15),
+      segmentTrack: withAlpha(rawWhite, 0.07),
+      segmentActive: withAlpha(rawWhite, 0.12),
+      segmentInactiveText: withAlpha(rawWhite, 0.32),
+      ringBackground: withAlpha(rawWhite, 0.05),
+      ringBorder: withAlpha(rawWhite, 0.1),
+      // Fingerprint glyph stroke (226:2735) — white at 40%.
+      ringIcon: withAlpha(rawWhite, 0.4),
+      glow: withAlpha(colors.secondary, 0.11),
+      ringSize: 136,
+      ringIconSize: 62,
+      segmentHeight: 33,
+      segmentRadius: 9,
+      segmentInset: 3,
+    },
+    successHero: {
+      dark: {
+        gradient: literals.heroDarkGradient,
+        iconColor: colors.secondary,
+        innerRing: withAlpha(colors.secondary, 0.12),
+        outerRing: withAlpha(colors.secondary, 0.06),
+        size: 108,
+        iconSize: 42,
+      },
+      success: {
+        gradient: [literals.statusBackground.success, literals.statusBackground.success],
+        iconColor: colors.success,
+        innerRing: withAlpha(colors.success, 0.15),
+        outerRing: withAlpha(colors.success, 0.07),
+        size: 112,
+        iconSize: 48,
+      },
+    },
+    optionCard: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      selectedBorderColor: colors.primary,
+      selectedBackgroundColor: colors.primarySubtle,
+      radioBorderColor: literals.pinDotBorder,
+      radioSelectedColor: colors.primary,
+      // Figma 226:2061 — 21px ring, 2px border.
+      radioSize: 21,
+      radioDotSize: 11,
     },
   };
 }

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useColorScheme } from "react-native";
+import { Appearance, useColorScheme } from "react-native";
 
 import { noopStorageAdapter, type ThemeStorageAdapter } from "./storage";
 import { applyTenantOverrides, validateTenantThemeOverrides } from "./tenantTheme";
@@ -20,6 +20,8 @@ export interface ThemeContextValue {
   /** What the customer/device asked for, including "system". */
   themePreference: ThemePreference;
   setThemePreference: (preference: ThemePreference) => void;
+  /** False until the persisted preference has been read; hold the splash screen until then to avoid a light/dark flash. */
+  isThemeHydrated: boolean;
   /** Tenant override keys that failed validation and were dropped; surface in dev tooling/logging, never to the customer. */
   tenantRejectedKeys: string[];
 }
@@ -50,24 +52,40 @@ export function ThemeProvider({
   const systemScheme = useColorScheme();
   const [preference, setPreference] = useState<ThemePreference>(initialPreference ?? "system");
   const hasLoadedPersisted = useRef(initialPreference !== undefined);
+  const [isThemeHydrated, setIsThemeHydrated] = useState(initialPreference !== undefined);
 
   useEffect(() => {
     if (hasLoadedPersisted.current) {
       return;
     }
     let cancelled = false;
-    storageAdapter.getItem(storageKey).then((stored) => {
-      if (!cancelled && isThemePreference(stored)) {
-        setPreference(stored);
-      }
-      hasLoadedPersisted.current = true;
-    });
+    storageAdapter
+      .getItem(storageKey)
+      .then((stored) => {
+        if (!cancelled && isThemePreference(stored)) {
+          setPreference(stored);
+        }
+      })
+      // An unreadable preference falls back to "system" rather than blocking launch.
+      .catch(() => {})
+      .finally(() => {
+        hasLoadedPersisted.current = true;
+        if (!cancelled) {
+          setIsThemeHydrated(true);
+        }
+      });
     return () => {
       cancelled = true;
     };
     // Only runs once on mount to hydrate a persisted preference.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep native UI (alerts, keyboard, date pickers, Switch) in step with an
+  // explicit in-app choice; "unspecified" hands control back to the OS.
+  useEffect(() => {
+    Appearance.setColorScheme?.(preference === "system" ? "unspecified" : preference);
+  }, [preference]);
 
   const setThemePreference = (next: ThemePreference) => {
     setPreference(next);
@@ -89,13 +107,14 @@ export function ThemeProvider({
       themeMode: resolvedMode,
       themePreference: preference,
       setThemePreference,
+      isThemeHydrated,
       tenantRejectedKeys: rejectedKeys,
     }),
     // setThemePreference is intentionally omitted: it's stable across renders
     // because it only closes over the setPreference/storageAdapter/storageKey
     // props, none of which this provider expects to change after mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [theme, resolvedMode, preference, rejectedKeys],
+    [theme, resolvedMode, preference, isThemeHydrated, rejectedKeys],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { isWalletNotProvisioned } from "@/api/errors";
 import { useDashboard } from "@/api/queries/useDashboard";
 import { useProfile } from "@/api/queries/useProfile";
 import { useTransactions } from "@/api/queries/useTransactions";
@@ -117,7 +118,7 @@ export default function HomeScreen() {
     },
     avatarLabel: {
       ...theme.typography.text14ExtraBold,
-      color: theme.colors.textInverse,
+      color: theme.colors.onPrimary,
     },
     degradedBanner: {
       backgroundColor: theme.components.status.warning.backgroundColor,
@@ -187,6 +188,18 @@ export default function HomeScreen() {
       alignItems: "center",
       justifyContent: "center",
     },
+    settingUpTitle: {
+      ...theme.typography.text15Bold,
+      color: theme.colors.textPrimary,
+      textAlign: "center",
+      marginTop: theme.semanticSpacing.component,
+    },
+    settingUpBody: {
+      ...theme.typography.bodyMedium,
+      color: theme.colors.textMuted,
+      textAlign: "center",
+      marginTop: theme.spacing.sm,
+    },
     errorText: {
       ...theme.typography.bodyMedium,
       color: theme.colors.error,
@@ -200,6 +213,18 @@ export default function HomeScreen() {
       <ScreenContainer>
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />
+        </View>
+      </ScreenContainer>
+    );
+  }
+
+  if (isWalletNotProvisioned(dashboard.error)) {
+    return (
+      <ScreenContainer>
+        <View style={styles.centered} accessibilityLiveRegion="polite">
+          <ActivityIndicator color={theme.colors.primary} />
+          <Text style={styles.settingUpTitle}>Setting up your wallet</Text>
+          <Text style={styles.settingUpBody}>This only takes a few seconds.</Text>
         </View>
       </ScreenContainer>
     );
@@ -223,7 +248,7 @@ export default function HomeScreen() {
   const { wallet, sections } = dashboardData;
 
   const quickActions: { key: string; label: string; icon: keyof typeof Ionicons.glyphMap; bg: string; iconColor: string; onPress: () => void }[] = [
-    { key: "add-money", label: "Add Money", icon: "add", bg: theme.colors.primary, iconColor: theme.colors.textInverse, onPress: () => router.push("/add-money") },
+    { key: "add-money", label: "Add Money", icon: "add", bg: theme.colors.primary, iconColor: theme.colors.onPrimary, onPress: () => router.push("/add-money") },
     { key: "send", label: "Send", icon: "arrow-up-outline", bg: theme.colors.secondarySubtle, iconColor: theme.colors.secondary, onPress: () => router.push("/transfers") },
     { key: "history", label: "History", icon: "receipt-outline", bg: theme.colors.primarySubtle, iconColor: theme.colors.textPrimary, onPress: () => router.push("/transactions") },
     { key: "more", label: "More", icon: "ellipsis-horizontal", bg: theme.colors.primarySubtle, iconColor: theme.colors.textPrimary, onPress: () => router.push("/statement") },

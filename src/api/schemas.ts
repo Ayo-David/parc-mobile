@@ -54,6 +54,11 @@ export const walletFundingDetailsSchema = z.object({
 });
 export type WalletFundingDetails = z.infer<typeof walletFundingDetailsSchema>;
 
+/** `POST /v1/wallet/virtual-account` — 202 while Paystack validates and opens the account, 200 once it's active. */
+export const virtualAccountRequestResultSchema = z.object({
+  status: z.enum(["PENDING", "ACTIVE"]),
+});
+
 export const tokenPairSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string(),
@@ -155,27 +160,32 @@ export const onboardingEmailResultSchema = z.object({
 export type OnboardingEmailResult = z.infer<typeof onboardingEmailResultSchema>;
 
 /**
- * Confirmed real schemas for face verification. The request no longer
- * takes a photo_url — it now takes an opaque `liveness_reference` the
- * client is expected to obtain from a third-party liveness/biometric SDK
- * (e.g. VerifyMe's own SDK) before calling this. No endpoint in any
- * contract issues that reference, so the SDK integration itself remains a
- * separate piece of work — the API shape is no longer the blocker, the
- * missing SDK dependency is. See PLAN.md.
+ * Identity and face verification results. `provider` is whichever KYC
+ * provider the tenant is configured with; the app never branches on it.
+ * `identity` is the legal name from the NIN register, returned once the NIN
+ * is verified.
  */
 export const kycVerificationSchema = z.object({
   id: z.string().uuid(),
   identity_type: z.enum(["NIN", "BVN", "BIOMETRIC"]),
   masked_identity: z.string(),
-  provider: z.enum(["VERIFYME"]),
+  provider: z.enum(["VERIFYME", "PREMBLY"]),
   status: z.enum(["PENDING", "VERIFIED", "FAILED", "MANUAL_REVIEW"]),
   created_at: z.string(),
 });
 export type KycVerification = z.infer<typeof kycVerificationSchema>;
 
+export const registeredIdentityNameSchema = z.object({
+  first_name: z.string(),
+  middle_name: z.string().nullable(),
+  last_name: z.string(),
+});
+export type RegisteredIdentityName = z.infer<typeof registeredIdentityNameSchema>;
+
 export const onboardingVerificationResultSchema = z.object({
   verification: kycVerificationSchema,
   onboarding: onboardingStateSchema,
+  identity: registeredIdentityNameSchema.optional(),
 });
 export type OnboardingVerificationResult = z.infer<typeof onboardingVerificationResultSchema>;
 

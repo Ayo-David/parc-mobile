@@ -491,4 +491,61 @@ export const typography: Typography = {
     letterSpacing: -0.9,
     fontVariant: ["tabular-nums"],
   },
+  // Source of Income Yes/No toggle (226:2137) and success-card rows (226:2349).
+  text14Medium: {
+    fontFamily: fontFamilies.medium,
+    fontWeight: "500",
+    fontSize: 14,
+    lineHeight: 21,
+    letterSpacing: 0,
+  },
+  // Success-screen headline (226:2336, 226:2752).
+  text28ExtraBold: {
+    fontFamily: fontFamilies.extraBold,
+    fontWeight: "800",
+    fontSize: 28,
+    lineHeight: 42,
+    letterSpacing: -0.7,
+  },
+  // Uppercase success-card eyebrow (226:2343).
+  text11BoldWide: {
+    fontFamily: fontFamilies.bold,
+    fontWeight: "700",
+    fontSize: 11,
+    lineHeight: 16.5,
+    letterSpacing: 0.88,
+  },
+  // Dark biometric/face screen headline (226:2724).
+  text19Bold: {
+    fontFamily: fontFamilies.bold,
+    fontWeight: "700",
+    fontSize: 19,
+    lineHeight: 28.5,
+    letterSpacing: -0.285,
+  },
+  // NIN digits (226:1863, bound `amount-rg`) — Figma says JetBrains Mono; Plus Jakarta Sans per the standing no-Mono decision.
+  text20RegularWide: {
+    fontFamily: fontFamilies.regular,
+    fontWeight: "400",
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: 1.6,
+    fontVariant: ["tabular-nums"],
+  },
+  // PEP option-card emoji (226:2055).
+  emojiLarge: {
+    fontFamily: fontFamilies.regular,
+    fontWeight: "400",
+    fontSize: 26,
+    lineHeight: 39,
+    letterSpacing: 0,
+  },
+  // Success-card row emoji (226:2347).
+  emojiMedium: {
+    fontFamily: fontFamilies.regular,
+    fontWeight: "400",
+    fontSize: 17,
+    lineHeight: 25.5,
+    letterSpacing: 0,
+  },
 };

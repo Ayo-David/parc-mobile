@@ -11,7 +11,7 @@ export interface ScreenContainerProps {
   /**
    * "auth" is the light onboarding/auth chrome from Figma (SignIn 226:1452,
    * PhoneEmailLogin 226:1514, Passcode 226:1555): white surface, 24px
-   * gutter, and a dark status bar — which must be set explicitly, since the
+   * gutter, and a mode-matched status bar — which must be set explicitly, since the
    * dark GetStarted screen beneath it in the stack sets a light one.
    */
   variant?: "default" | "auth";
@@ -24,7 +24,7 @@ export interface ScreenContainerProps {
  * content insets automatically.
  */
 export function ScreenContainer({ children, style, variant = "default" }: ScreenContainerProps) {
-  const { theme } = useTheme();
+  const { theme, themeMode } = useTheme();
   const isAuth = variant === "auth";
   return (
     <SafeAreaView
@@ -37,7 +37,7 @@ export function ScreenContainer({ children, style, variant = "default" }: Screen
         style,
       ]}
     >
-      {isAuth ? <StatusBar style="dark" /> : null}
+      {isAuth ? <StatusBar style={themeMode === "dark" ? "light" : "dark"} /> : null}
       {children}
     </SafeAreaView>
   );

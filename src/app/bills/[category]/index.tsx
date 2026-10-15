@@ -172,7 +172,7 @@ export default function BillProductScreen() {
     }
   }
 
-  const badgePalette = [theme.colors.secondary, theme.colors.primary, theme.colors.success, theme.colors.info, theme.colors.warning];
+  const badgePalette = [theme.colors.secondary, theme.colors.surfaceInverse, theme.colors.success, theme.colors.info, theme.colors.warning];
   const cardRecipe = theme.components.card;
   const heroGradient = theme.components.walletCard;
 

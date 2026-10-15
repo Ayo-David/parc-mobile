@@ -67,7 +67,7 @@ export default function LegalDocumentsScreen() {
           <View style={styles.tabsRow}>
             {documents.map((doc, index) => (
               <Pressable key={doc.id} style={[styles.tab, index === selectedIndex ? styles.tabActive : styles.tabInactive]} onPress={() => setSelectedIndex(index)}>
-                <Text style={[styles.tabLabel, { color: index === selectedIndex ? theme.colors.textInverse : theme.colors.textSecondary }]}>{doc.title ?? doc.consent_type}</Text>
+                <Text style={[styles.tabLabel, { color: index === selectedIndex ? theme.colors.onPrimary : theme.colors.textSecondary }]}>{doc.title ?? doc.consent_type}</Text>
               </Pressable>
             ))}
           </View>

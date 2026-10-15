@@ -24,7 +24,7 @@ export default function ManageBeneficiariesScreen() {
   const router = useRouter();
   const beneficiaries = useBeneficiaries();
 
-  const palette = [theme.colors.secondary, theme.colors.primary, theme.colors.success, theme.colors.info, theme.colors.warning];
+  const palette = [theme.colors.secondary, theme.colors.surfaceInverse, theme.colors.success, theme.colors.info, theme.colors.warning];
 
   const styles = StyleSheet.create({
     content: { paddingTop: theme.semanticSpacing.section, gap: theme.spacing.md, paddingBottom: theme.semanticSpacing.section },

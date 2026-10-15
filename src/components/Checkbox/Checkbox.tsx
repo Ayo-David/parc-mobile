@@ -30,7 +30,7 @@ export function Checkbox({ checked, onToggle, label }: CheckboxProps) {
       marginTop: theme.spacing.xs,
     },
     check: {
-      color: theme.colors.textInverse,
+      color: theme.colors.onPrimary,
       ...theme.typography.caption,
     },
     label: {

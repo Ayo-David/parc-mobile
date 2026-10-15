@@ -156,7 +156,7 @@ export default function ForgotPasscodeScreen() {
     },
     continueLabel: {
       ...theme.typography.button,
-      color: theme.colors.textInverse,
+      color: canContinue ? theme.colors.onPrimary : theme.colors.textDisabled,
     },
   });
 

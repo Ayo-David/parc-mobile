@@ -1,14 +1,21 @@
 import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { useBootstrap } from "@/api/queries/useBootstrap";
 import { useOnboardingReferenceData } from "@/api/queries/useOnboardingReferenceData";
-import { Button } from "@/components/Button/Button";
-import { Checkbox } from "@/components/Checkbox/Checkbox";
-import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
+import { AuthButton } from "@/components/AuthButton/AuthButton";
+import { LabeledField } from "@/components/LabeledField/LabeledField";
 import { PickerField } from "@/components/PickerField/PickerField";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
+import { OnboardingStepLayout } from "@/features/onboarding/OnboardingStepLayout";
+import { useTheme } from "@/theme";
+
+const OTHER_INCOME_CHOICES = [
+  { value: true, label: "Yes, I do" },
+  { value: false, label: "No, I don't" },
+];
 
 /**
  * Figma "SourceOfIncome" (node 226:2078). The confirmed contract
@@ -16,14 +23,17 @@ import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
  * free-text strings, but RESOLVED (PLAN.md "Real blockers"): the real
  * `GET /v1/onboarding/reference-data` endpoint now exposes occupation and
  * income-band lists, so this picks from that list instead of free text.
+ * Figma shows neither "other income" answer pre-selected, so the customer
+ * must pick one rather than the app defaulting to "No".
  */
 export default function OnboardingIncomeScreen() {
+  const { theme } = useTheme();
   const bootstrap = useBootstrap();
   const referenceData = useOnboardingReferenceData(bootstrap.data?.tenant_id);
   const advanceOnboarding = useAdvanceOnboarding();
   const [occupation, setOccupation] = useState<string | null>(null);
   const [annualIncomeBand, setAnnualIncomeBand] = useState<string | null>(null);
-  const [hasOtherIncome, setHasOtherIncome] = useState(false);
+  const [hasOtherIncome, setHasOtherIncome] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,10 +42,10 @@ export default function OnboardingIncomeScreen() {
   const incomeBandOptions = incomeBands.map((band) => ({ value: band.code, label: band.label }));
   const selectedBand = incomeBands.find((band) => band.code === annualIncomeBand) ?? null;
 
-  const canContinue = !!occupation && !!selectedBand;
+  const canContinue = !!occupation && !!selectedBand && hasOtherIncome !== null;
 
   async function handleSubmit() {
-    if (!canContinue || !occupation || !selectedBand) return;
+    if (!canContinue || !occupation || !selectedBand || hasOtherIncome === null) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -48,16 +58,70 @@ export default function OnboardingIncomeScreen() {
     }
   }
 
+  const recipe = theme.components.optionCard;
+  const styles = StyleSheet.create({
+    fields: {
+      gap: theme.spacing.md + 2,
+    },
+    choiceRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm + 2,
+      marginTop: theme.spacing.xs,
+    },
+    choice: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md + 2,
+      borderRadius: theme.radii.button,
+      borderWidth: theme.borderWidth.thin,
+    },
+    choiceLabel: {
+      ...theme.typography.text14Medium,
+      color: theme.colors.textPrimary,
+    },
+  });
+
   return (
-    <FormScreenLayout
-      title="What do you do?"
-      subtitle="This helps us tailor your account to you."
+    <OnboardingStepLayout
+      icon="briefcase-outline"
+      title={"Tell us about\nyour income."}
+      subtitle="This helps us offer you the right financial products"
       errorMessage={error}
-      footer={<Button label="Continue" onPress={handleSubmit} disabled={!canContinue} loading={isSubmitting} />}
+      footer={<AuthButton label="Almost there →" onPress={handleSubmit} disabled={!canContinue} loading={isSubmitting} />}
     >
-      <PickerField placeholder="Occupation" options={occupationOptions} selectedValue={occupation} searchable onSelect={(option) => setOccupation(option.value)} />
-      <PickerField placeholder="Annual income range" options={incomeBandOptions} selectedValue={annualIncomeBand} onSelect={(option) => setAnnualIncomeBand(option.value)} />
-      <Checkbox checked={hasOtherIncome} onToggle={() => setHasOtherIncome((prev) => !prev)} label="I have other sources of income" />
-    </FormScreenLayout>
+      <View style={styles.fields}>
+        <LabeledField label="What's your occupation?">
+          <PickerField placeholder="Select occupation" options={occupationOptions} selectedValue={occupation} searchable onSelect={(option) => setOccupation(option.value)} />
+        </LabeledField>
+        <LabeledField label="What's your annual income?">
+          <PickerField placeholder="Select income range" options={incomeBandOptions} selectedValue={annualIncomeBand} onSelect={(option) => setAnnualIncomeBand(option.value)} />
+        </LabeledField>
+        <LabeledField label="Do you have other sources of income?">
+          <View style={styles.choiceRow} accessibilityRole="radiogroup">
+            {OTHER_INCOME_CHOICES.map((choice) => {
+              const selected = hasOtherIncome === choice.value;
+              return (
+                <Pressable
+                  key={choice.label}
+                  onPress={() => setHasOtherIncome(choice.value)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  style={[
+                    styles.choice,
+                    {
+                      backgroundColor: selected ? recipe.selectedBackgroundColor : recipe.backgroundColor,
+                      borderColor: selected ? recipe.selectedBorderColor : recipe.borderColor,
+                    },
+                  ]}
+                >
+                  <Text style={styles.choiceLabel}>{choice.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </LabeledField>
+      </View>
+    </OnboardingStepLayout>
   );
 }

@@ -1,10 +1,9 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
-import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
-import { PinPad } from "@/components/PinPad/PinPad";
+import { OnboardingPasscodeLayout } from "@/features/onboarding/OnboardingPasscodeLayout";
 import { consumeDraftPasscode } from "@/features/onboarding/passcodeDraft";
 
 const PASSCODE_LENGTH = 6;
@@ -21,38 +20,44 @@ export default function ConfirmPasscodeScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (confirmation.length !== PASSCODE_LENGTH || isSubmitting) {
+  function handleChange(next: string) {
+    setConfirmation(next);
+    if (next.length !== PASSCODE_LENGTH || isSubmitting) {
       return;
     }
     const draft = consumeDraftPasscode();
     if (!draft) {
-      setError("Your session expired. Please start over.");
-      router.replace("/(onboarding)/create-passcode");
+      router.replace({ pathname: "/(onboarding)/create-passcode", params: { reason: "expired" } });
       return;
     }
-    if (draft !== confirmation) {
-      setError("Passcodes didn't match. Please try again.");
+    if (draft !== next) {
       setConfirmation("");
-      router.replace("/(onboarding)/create-passcode");
+      router.replace({ pathname: "/(onboarding)/create-passcode", params: { reason: "mismatch" } });
       return;
     }
     setIsSubmitting(true);
     setError(null);
     api
-      .setOnboardingLoginPasscode({ passcode: draft, passcodeConfirmation: confirmation })
+      .setOnboardingLoginPasscode({ passcode: draft, passcodeConfirmation: next })
       .then(() => router.replace("/(onboarding)/passcode-success"))
       .catch((submitError) => {
         setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
         setConfirmation("");
       })
       .finally(() => setIsSubmitting(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [confirmation]);
+  }
 
   return (
-    <FormScreenLayout title="Confirm your passcode" errorMessage={error}>
-      <PinPad length={PASSCODE_LENGTH} value={confirmation} onChange={setConfirmation} disabled={isSubmitting} />
-    </FormScreenLayout>
+    <OnboardingPasscodeLayout
+      rightLabel="Confirm"
+      title={"Confirm your\nPasscode."}
+      subtitle="Enter the same passcode again"
+      length={PASSCODE_LENGTH}
+      value={confirmation}
+      onChange={handleChange}
+      disabled={isSubmitting}
+      errorMessage={error}
+      statusMessage={isSubmitting ? "Saving your passcode…" : null}
+    />
   );
 }

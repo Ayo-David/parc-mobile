@@ -1,14 +1,25 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as LocalAuthentication from "expo-local-authentication";
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { type ComponentProps, useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
+import { AuthButton } from "@/components/AuthButton/AuthButton";
+import { BackButton } from "@/components/BackButton/BackButton";
 import { Button } from "@/components/Button/Button";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
 import { useTheme } from "@/theme";
+
+type BiometricMethod = "fingerprint" | "face";
+
+const METHOD_COPY: Record<BiometricMethod, { tab: string; title: string; subtitle: string; action: string; icon: ComponentProps<typeof Ionicons>["name"] }> = {
+  fingerprint: { tab: "Fingerprint", title: "Use Fingerprint", subtitle: "Touch the sensor to sign in", action: "Touch to Scan", icon: "finger-print" },
+  face: { tab: "Face ID", title: "Use Face ID", subtitle: "Look at your phone to sign in", action: "Scan Face", icon: "scan-outline" },
+};
 
 /**
  * Figma "Biometric" (node 226:2690) plus, for the first time, its real
@@ -18,7 +29,9 @@ import { useTheme } from "@/theme";
  * profile via POST /v1/onboarding/complete's `biometric_enrolled` flag —
  * it does not register a passkey/WebAuthn credential (deferred per
  * PLAN.md Part 1, "Biometric login" is a separate, not-yet-built
- * feature).
+ * feature). The Fingerprint / Face ID toggle only switches copy and is
+ * limited to what the device reports via supportedAuthenticationTypesAsync
+ * — the OS decides which sensor actually prompts.
  */
 export default function BiometricSetupScreen() {
   const { theme } = useTheme();
@@ -27,6 +40,20 @@ export default function BiometricSetupScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [setupFailed, setSetupFailed] = useState(false);
+  const [supportedMethods, setSupportedMethods] = useState<BiometricMethod[]>([]);
+  const [method, setMethod] = useState<BiometricMethod>("fingerprint");
+
+  useEffect(() => {
+    LocalAuthentication.supportedAuthenticationTypesAsync()
+      .then((types) => {
+        const methods: BiometricMethod[] = [];
+        if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) methods.push("fingerprint");
+        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) methods.push("face");
+        setSupportedMethods(methods);
+        if (methods.length > 0) setMethod(methods[0]);
+      })
+      .catch(() => setSupportedMethods([]));
+  }, []);
 
   useEffect(() => {
     LocalAuthentication.hasHardwareAsync()
@@ -81,39 +108,153 @@ export default function BiometricSetupScreen() {
     );
   }
 
+  const media = theme.components.onMedia;
+  const copy = METHOD_COPY[method];
+  // RN has no radial gradient; stacked low-alpha discs approximate Figma's
+  // magenta glow (226:2732), which fades to zero at 70% of its 190px
+  // radius (~266px across) — densest at the centre, behind the ring.
+  const GLOW_STEPS = 6;
+  const glowSizes = Array.from({ length: GLOW_STEPS }, (_, index) => media.ringSize * (1.95 - (index * 0.9) / (GLOW_STEPS - 1)));
+
   const styles = StyleSheet.create({
+    screen: {
+      backgroundColor: theme.colors.mediaBackground,
+      paddingHorizontal: theme.spacing.xxl,
+    },
+    header: {
+      paddingTop: theme.spacing.md,
+    },
     content: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: theme.semanticSpacing.component,
-      paddingBottom: theme.semanticSpacing.section,
+    },
+    segmentTrack: {
+      flexDirection: "row",
+      gap: theme.spacing.xs + 1,
+      padding: media.segmentInset,
+      borderRadius: theme.radii.md,
+      backgroundColor: media.segmentTrack,
+      marginBottom: theme.spacing.huge,
+    },
+    segment: {
+      height: media.segmentHeight,
+      paddingHorizontal: theme.spacing.lg - 1,
+      borderRadius: media.segmentRadius,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    segmentActive: {
+      backgroundColor: media.segmentActive,
+    },
+    segmentLabel: {
+      ...theme.typography.text12SemiBold,
+      color: media.segmentInactiveText,
+    },
+    segmentLabelActive: {
+      color: theme.colors.textInverse,
+    },
+    target: {
+      width: media.ringSize,
+      height: media.ringSize,
+      alignItems: "center",
+      justifyContent: "center",
+      // Figma reserves a 176px slot for the 136px ring, then 32px before the title (226:2720).
+      marginTop: theme.spacing.xl,
+      marginBottom: theme.spacing.xl + theme.spacing.xxxl,
+    },
+    glow: {
+      position: "absolute",
+      borderRadius: theme.radii.full,
+      backgroundColor: media.glow,
+      opacity: 1 / glowSizes.length,
+    },
+    ring: {
+      width: media.ringSize,
+      height: media.ringSize,
+      borderRadius: theme.radii.full,
+      borderWidth: theme.borderWidth.thin,
+      borderColor: media.ringBorder,
+      backgroundColor: media.ringBackground,
+      alignItems: "center",
+      justifyContent: "center",
     },
     title: {
-      ...theme.typography.h2,
-      color: theme.colors.textPrimary,
+      ...theme.typography.text19Bold,
+      color: theme.colors.textInverse,
       textAlign: "center",
     },
     subtitle: {
-      ...theme.typography.bodyMedium,
-      color: theme.colors.textSecondary,
+      ...theme.typography.text14Regular,
+      color: theme.colors.textInverse,
       textAlign: "center",
+      marginTop: theme.spacing.xs + 3,
     },
     error: {
       ...theme.typography.bodySmall,
       color: theme.colors.error,
       textAlign: "center",
     },
+    footer: {
+      paddingBottom: theme.semanticSpacing.component,
+      gap: theme.spacing.sm + 1,
+    },
+    secondary: {
+      height: theme.control.backButton,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    secondaryLabel: {
+      ...theme.typography.buttonSmall,
+      letterSpacing: 0,
+      color: theme.colors.textInverse,
+    },
   });
 
   return (
-    <ScreenContainer>
+    <ScreenContainer style={styles.screen}>
+      <StatusBar style="light" />
+      <View style={styles.header}>
+        <BackButton tone="onMedia" />
+      </View>
       <View style={styles.content}>
-        <Text style={styles.title}>Set up biometric unlock</Text>
-        <Text style={styles.subtitle}>{isSupported ? "Use Face ID or fingerprint to unlock Parc faster next time." : "Biometric unlock isn't available on this device."}</Text>
+        <View style={styles.segmentTrack} accessibilityRole="tablist">
+          {(["fingerprint", "face"] as const).map((option) => {
+            const isActive = option === method;
+            const isAvailable = supportedMethods.includes(option);
+            return (
+              <Pressable
+                key={option}
+                style={[styles.segment, isActive && styles.segmentActive]}
+                onPress={() => setMethod(option)}
+                disabled={!isAvailable || isSubmitting}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive, disabled: !isAvailable }}
+              >
+                <Text style={[styles.segmentLabel, isActive && styles.segmentLabelActive]}>{METHOD_COPY[option].tab}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={styles.target}>
+          {glowSizes.map((size) => (
+            <View key={size} style={[styles.glow, { width: size, height: size }]} />
+          ))}
+          <View style={styles.ring}>
+            <Ionicons name={copy.icon} size={media.ringIconSize} color={media.ringIcon} />
+          </View>
+        </View>
+        <Text style={styles.title} accessibilityRole="header">
+          {copy.title}
+        </Text>
+        <Text style={styles.subtitle}>{copy.subtitle}</Text>
+      </View>
+      <View style={styles.footer}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        {isSupported ? <Button label="Enable" onPress={handleEnable} loading={isSubmitting} /> : null}
-        <Button label="Skip for now" variant="ghost" onPress={() => finish(false)} disabled={isSubmitting} />
+        <AuthButton variant="onMedia" label={copy.action} onPress={handleEnable} loading={isSubmitting} disabled={isSupported !== true} />
+        <Pressable style={styles.secondary} onPress={() => finish(false)} disabled={isSubmitting} accessibilityRole="button">
+          <Text style={styles.secondaryLabel}>Use Passcode instead</Text>
+        </Pressable>
       </View>
     </ScreenContainer>
   );

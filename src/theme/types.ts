@@ -22,6 +22,8 @@ export interface SemanticColors {
   primary: HexColor;
   primaryHover: HexColor;
   primarySubtle: HexColor;
+  /** Text/icon color on a solid `primary` fill (buttons, selected chips, checked boxes). White in light mode, black in dark mode where `primary` inverts to white. Never use `textInverse` on a `primary` fill — it doesn't flip. */
+  onPrimary: HexColor;
   secondary: HexColor;
   secondarySubtle: HexColor;
   background: HexColor;
@@ -55,9 +57,11 @@ export interface SemanticColors {
   /** Dedicated disabled-button surface (Figma "Button Components" > Disabled State/Disabled Secondary — both variants render identically). Not derived via opacity. */
   disabledSurface: HexColor;
   disabledBorder: HexColor;
-  /** Full-bleed dark chrome for camera/scanner screens (Figma Liveness 02–04, nodes 426:55/426:71/426:112) — content-driven, not a light/dark theme-mode value, so it's the same in both modes. */
+  /** Dark card surface that carries `textInverse` content (savings hero, tier card, avatar tiles). Near-black in light mode; a raised dark gray in dark mode so it still reads as a card against `background`. */
   surfaceInverse: HexColor;
-  /** Translucent chip background for a control placed over `surfaceInverse` (e.g. the liveness capture back button, nodes 426:51/426:90/426:206). */
+  /** Full-bleed always-dark chrome for camera/scanner and the GetStarted hero (Figma Liveness 02–04, nodes 426:55/426:71/426:112; GetStarted 226:1408) — content-driven, so it's black in both modes. */
+  mediaBackground: HexColor;
+  /** Translucent chip background for a control placed over `mediaBackground` (e.g. the liveness capture back button, nodes 426:51/426:90/426:206). */
   overlayOnMedia: string;
 }
 
@@ -159,6 +163,20 @@ export interface Typography {
   /** Add Money screen's account-number figure (228:3786). */
   text28ExtraBoldFigureWide: TypographyStyle;
   text30ExtraBoldFigure: TypographyStyle;
+  /** Option labels on the Source of Income Yes/No toggle (226:2137) and success-card rows (226:2349). */
+  text14Medium: TypographyStyle;
+  /** Success-screen headline — "You're all set!" / "Identity Verified!" (226:2336, 226:2752). */
+  text28ExtraBold: TypographyStyle;
+  /** Uppercase eyebrow on the success-screen card — "YOU CAN LOGIN WITH" / "NEXT UP" (226:2343). */
+  text11BoldWide: TypographyStyle;
+  /** Headline on the dark biometric/face screens (226:2724, 226:1914). */
+  text19Bold: TypographyStyle;
+  /** NIN entry digits (226:1863, bound `amount-rg`) — Plus Jakarta Sans per the no-JetBrains-Mono decision. */
+  text20RegularWide: TypographyStyle;
+  /** Emoji glyphs on PEP option cards (226:2055). */
+  emojiLarge: TypographyStyle;
+  /** Emoji glyphs on success-screen card rows (226:2347, 226:2763). */
+  emojiMedium: TypographyStyle;
 }
 
 export interface SpacingScale {
@@ -209,6 +227,8 @@ export interface RadiusScale {
   cardLg: number;
   /** Bound Figma Variable `Alias/borderradius/pad` (17px) — the PIN-pad numeric key radius (226:1598 etc.), distinct from `button`/`card`. */
   pad: number;
+  /** Selectable option card (PEP 226:2053) — 18px. */
+  option: number;
 }
 
 export interface ShadowStyle {
@@ -262,6 +282,8 @@ export interface ControlHeights {
   iconButtonLarge: number;
   iconButtonXl: number;
   input: number;
+  /** Hero icon tile above onboarding headings (226:1847) — 52px. */
+  iconTile: number;
   otpBoxWidth: number;
   otpBoxHeight: number;
   minTouchTarget: number;
@@ -336,6 +358,45 @@ export interface ComponentStyles {
     dotFilledColor: HexColor;
     keyBackground: HexColor;
     keyRadius: number;
+  };
+  /**
+   * White-alpha surfaces on the full-bleed dark onboarding screens
+   * (Biometric 226:2690, FaceVerification 226:1878). Mode-independent:
+   * these screens are dark in both themes.
+   */
+  onMedia: {
+    buttonBackground: string;
+    buttonBorder: string;
+    segmentTrack: string;
+    segmentActive: string;
+    segmentInactiveText: string;
+    ringBackground: string;
+    ringBorder: string;
+    ringIcon: string;
+    glow: string;
+    /** Scan-target ring (226:2733) and its glyph (226:2735). */
+    ringSize: number;
+    ringIconSize: number;
+    /** Fingerprint/Face ID segmented control (226:2715). */
+    segmentHeight: number;
+    segmentRadius: number;
+    segmentInset: number;
+  };
+  /** Ringed hero badge on onboarding success screens — dark (PasscodeSuccess 226:2328) and success (FaceVerified 226:2745). */
+  successHero: Record<
+    "dark" | "success",
+    { gradient: readonly [string, string]; iconColor: string; innerRing: string; outerRing: string; size: number; iconSize: number }
+  >;
+  /** Selectable option card + radio (PEP 226:2053, Income toggle 226:2135). */
+  optionCard: {
+    backgroundColor: HexColor;
+    borderColor: HexColor;
+    selectedBorderColor: HexColor;
+    selectedBackgroundColor: HexColor;
+    radioBorderColor: HexColor;
+    radioSelectedColor: HexColor;
+    radioSize: number;
+    radioDotSize: number;
   };
 }
 

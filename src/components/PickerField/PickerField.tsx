@@ -50,7 +50,8 @@ export function PickerField({ placeholder, options, selectedValue, onSelect, sea
     },
     triggerLabel: {
       ...theme.typography.bodyMedium,
-      color: selectedLabel ? recipe.textColor : theme.colors.textMuted,
+      // Figma dropdown placeholders (#BEBEBE, 226:1974) are lighter than text-input placeholders.
+      color: selectedLabel ? recipe.textColor : theme.colors.textDisabled,
     },
     sheetContent: {
       maxHeight: theme.spacing.xxxl * 10,
@@ -72,7 +73,7 @@ export function PickerField({ placeholder, options, selectedValue, onSelect, sea
     <>
       <Pressable style={styles.trigger} disabled={disabled} onPress={() => setIsOpen(true)}>
         <Text style={styles.triggerLabel}>{selectedLabel ?? placeholder}</Text>
-        <Ionicons name="chevron-down" size={theme.icon.compact} color={theme.colors.textMuted} />
+        <Ionicons name="chevron-down" size={theme.icon.inline} color={theme.colors.textMuted} />
       </Pressable>
       <BottomSheet
         visible={isOpen}

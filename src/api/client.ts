@@ -56,6 +56,7 @@ import {
   paymentTransactionListSchema,
   transferSchema,
   walletFundingDetailsSchema,
+  virtualAccountRequestResultSchema,
   walletSummarySchema,
   type AuthResult,
   type BeneficiaryKind,
@@ -111,6 +112,8 @@ import {
 } from "./schemas";
 
 const REQUEST_TIMEOUT_MS = 15_000;
+/** BVN lookup and the liveness + face match each wait on the KYC provider. */
+const KYC_REQUEST_TIMEOUT_MS = 60_000;
 
 declare module "axios" {
   interface AxiosRequestConfig {
@@ -288,6 +291,7 @@ interface RequestOptions {
   /** Defaults to true. Bootstrap, passcode login/recovery, and onboarding start/phone-verify are the current exceptions. */
   requiresAuth?: boolean;
   headers?: Record<string, string>;
+  timeoutMs?: number;
 }
 
 async function request<T>(options: RequestOptions, parse: (body: unknown) => T): Promise<T> {
@@ -297,6 +301,7 @@ async function request<T>(options: RequestOptions, parse: (body: unknown) => T):
     params: options.query,
     data: options.body,
     headers: options.headers,
+    ...(options.timeoutMs ? { timeout: options.timeoutMs } : {}),
     parcRequiresAuth: options.requiresAuth ?? true,
   });
   return parse(response.data);
@@ -506,6 +511,26 @@ export const api = {
     return request({ method: "GET", path: "/v1/wallet/funding-details" }, parseWithSchema(walletFundingDetailsSchema, "wallet funding details"));
   },
 
+  /**
+   * Opens the customer's Paystack account number. Paystack validates the BVN
+   * (the one verified at onboarding, held server side) against a bank account
+   * the customer owns, then opens the account asynchronously — poll
+   * `getWalletFundingDetails`. Send `bvn` only after a BVN_REQUIRED answer.
+   * Nothing here is stored or logged on the device.
+   */
+  async requestWalletVirtualAccount(params: { bvn?: string; bankCode: string; accountNumber: string; idempotencyKey: string }): Promise<{ status: "PENDING" | "ACTIVE" }> {
+    return request(
+      {
+        method: "POST",
+        path: "/v1/wallet/virtual-account",
+        headers: { "idempotency-key": params.idempotencyKey },
+        body: { ...(params.bvn ? { bvn: params.bvn } : {}), bank_code: params.bankCode, account_number: params.accountNumber },
+        timeoutMs: KYC_REQUEST_TIMEOUT_MS,
+      },
+      parseWithSchema(virtualAccountRequestResultSchema, "virtual account request"),
+    );
+  },
+
   /** RESOLVED (PLAN.md "Real blockers"): closes the consent-discovery gap and gives Address/Income real reference data. Public (X-Tenant-Id only, no bearer). */
   async getOnboardingReferenceData(tenantId: string): Promise<OnboardingReferenceData> {
     return request(
@@ -547,7 +572,10 @@ export const api = {
 
   /** RESOLVED: response now typed (`OnboardingEmailResult` = onboarding state + optional email_challenge), previously probed. */
   async setOnboardingEmail(params: { email: string }): Promise<OnboardingEmailResult> {
-    return request({ method: "PUT", path: "/v1/onboarding/email", body: { email: params.email } }, parseWithSchema(onboardingEmailResultSchema, "set onboarding email"));
+    return request(
+      { method: "PUT", path: "/v1/onboarding/email", headers: { "idempotency-key": randomUUID() }, body: { email: params.email } },
+      parseWithSchema(onboardingEmailResultSchema, "set onboarding email"),
+    );
   },
 
   async skipOnboardingEmail(): Promise<void> {
@@ -555,7 +583,10 @@ export const api = {
   },
 
   async verifyOnboardingEmail(params: { challengeId: string; code: string }): Promise<void> {
-    return request({ method: "POST", path: "/v1/onboarding/email/verify", body: { challenge_id: params.challengeId, code: params.code } }, ignoreBody);
+    return request(
+      { method: "POST", path: "/v1/onboarding/email/verify", headers: { "idempotency-key": randomUUID() }, body: { challenge_id: params.challengeId, code: params.code } },
+      ignoreBody,
+    );
   },
 
   /**
@@ -565,33 +596,46 @@ export const api = {
    * `auth-customer` contract documents a `202` response with the exact
    * same `OnboardingVerificationResult` schema `face-verification` uses
    * (`{verification: KycVerification, onboarding: OnboardingState}`), so
-   * a failed/manual-review NIN check was previously indistinguishable
+   * a failed/manual-review BVN check was previously indistinguishable
    * from success at the type level, even though the server was already
    * reporting it correctly.
    */
-  async submitOnboardingIdentity(params: { ninValue: string; consentId: string }): Promise<OnboardingVerificationResult> {
+  async submitOnboardingIdentity(params: { bvnValue: string; consentId: string }): Promise<OnboardingVerificationResult> {
     return request(
-      { method: "POST", path: "/v1/onboarding/identity", body: { identity_type: "NIN", identity_value: params.ninValue, consent_id: params.consentId } },
+      {
+        method: "POST",
+        path: "/v1/onboarding/identity",
+        headers: { "idempotency-key": randomUUID() },
+        timeoutMs: KYC_REQUEST_TIMEOUT_MS,
+        body: { identity_type: "BVN", identity_value: params.bvnValue, consent_id: params.consentId },
+      },
       parseWithSchema(onboardingVerificationResultSchema, "onboarding identity verification"),
     );
   },
 
   /**
-   * The request no longer takes a photo_url — it now takes an opaque
-   * `liveness_reference` obtained from a third-party liveness/biometric
-   * SDK (e.g. VerifyMe's own SDK), which this app does not yet integrate.
-   * The API shape is resolved; the missing SDK dependency is a separate,
-   * still-open piece of work (PLAN.md).
+   * Sends the selfie captured at the end of the liveness challenge as
+   * `selfie_image`; the backend runs the KYC provider's liveness check and
+   * BVN face match on it. The image is never logged or persisted here.
    */
-  async submitFaceVerification(params: { ninValue: string; livenessReference: string; consentId: string }): Promise<OnboardingVerificationResult> {
+  async submitFaceVerification(params: { bvnValue: string; selfieImage: string; consentId: string }): Promise<OnboardingVerificationResult> {
     return request(
-      { method: "POST", path: "/v1/onboarding/face-verification", body: { identity_type: "NIN", identity_value: params.ninValue, liveness_reference: params.livenessReference, consent_id: params.consentId } },
+      {
+        method: "POST",
+        path: "/v1/onboarding/face-verification",
+        headers: { "idempotency-key": randomUUID() },
+        timeoutMs: KYC_REQUEST_TIMEOUT_MS,
+        body: { identity_type: "BVN", identity_value: params.bvnValue, selfie_image: params.selfieImage, consent_id: params.consentId },
+      },
       parseWithSchema(onboardingVerificationResultSchema, "face verification"),
     );
   },
 
   async confirmFaceVerification(verificationId: string): Promise<OnboardingVerificationResult> {
-    return request({ method: "POST", path: "/v1/onboarding/face-verification/confirm", body: { verification_id: verificationId } }, parseWithSchema(onboardingVerificationResultSchema, "confirm face verification"));
+    return request(
+      { method: "POST", path: "/v1/onboarding/face-verification/confirm", headers: { "idempotency-key": randomUUID() }, body: { verification_id: verificationId } },
+      parseWithSchema(onboardingVerificationResultSchema, "confirm face verification"),
+    );
   },
 
   async submitOnboardingAddress(params: { state: string; lga: string; area: string; streetAddress: string; landmark?: string }): Promise<void> {

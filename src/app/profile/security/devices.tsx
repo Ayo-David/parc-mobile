@@ -107,7 +107,7 @@ export default function LinkedDevicesScreen() {
             return (
               <Pressable key={id ?? index} style={styles.card} onPress={() => id && !isCurrent && toggleSelected(id)} disabled={isCurrent || !id} accessibilityRole={id && !isCurrent ? "checkbox" : undefined}>
                 <View style={styles.row}>
-                  {!isCurrent && id ? <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>{isSelected ? <Ionicons name="checkmark" size={14} color={theme.colors.textInverse} /> : null}</View> : null}
+                  {!isCurrent && id ? <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>{isSelected ? <Ionicons name="checkmark" size={14} color={theme.colors.onPrimary} /> : null}</View> : null}
                   <View style={styles.iconBadge}>
                     <Ionicons name="phone-portrait-outline" size={theme.icon.compact} color={theme.colors.textSecondary} />
                   </View>

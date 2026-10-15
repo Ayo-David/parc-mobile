@@ -104,7 +104,7 @@ export default function EditProfileScreen() {
       justifyContent: "center",
       backgroundColor: canSave ? theme.colors.primary : theme.colors.disabledSurface,
     },
-    saveLabel: { ...theme.typography.text15Bold, color: canSave ? theme.colors.textInverse : theme.colors.textDisabled },
+    saveLabel: { ...theme.typography.text15Bold, color: canSave ? theme.colors.onPrimary : theme.colors.textDisabled },
   });
 
   return (

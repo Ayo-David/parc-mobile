@@ -32,7 +32,7 @@ export function StatusScreenLayout({ icon, tone = "neutral", title, body, childr
   const { theme } = useTheme();
 
   const toneStyles: Record<StatusScreenTone, { backgroundColor: string; iconColor: string }> = {
-    primary: { backgroundColor: theme.colors.primary, iconColor: theme.colors.textInverse },
+    primary: { backgroundColor: theme.colors.primary, iconColor: theme.colors.onPrimary },
     warning: { backgroundColor: theme.components.status.warning.backgroundColor, iconColor: theme.colors.warning },
     error: { backgroundColor: theme.components.status.error.backgroundColor, iconColor: theme.colors.error },
     neutral: { backgroundColor: theme.colors.primarySubtle, iconColor: theme.colors.textPrimary },

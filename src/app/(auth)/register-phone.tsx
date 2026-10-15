@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -104,7 +104,7 @@ export default function RegisterPhoneScreen() {
         icon="person-outline"
         tone="error"
         title="This account already exists"
-        body="We found an existing Parc account linked to this phone number / NIN. Sign in instead, or contact support if you believe this is an error."
+        body="We found an existing Parc account linked to this phone number / BVN. Sign in instead, or contact support if you believe this is an error."
         onBack={() => setIsDuplicate(false)}
         footer={
           <>
@@ -128,7 +128,11 @@ export default function RegisterPhoneScreen() {
       justifyContent: "space-between",
       paddingTop: theme.spacing.md,
     },
+    keyboardAvoider: {
+      flex: 1,
+    },
     body: {
+      flexGrow: 1,
       paddingTop: theme.semanticSpacing.card,
     },
     title: {
@@ -239,9 +243,12 @@ export default function RegisterPhoneScreen() {
       ...theme.typography.caption,
       color: theme.colors.secondary,
     },
+    // Pinned outside the ScrollView so it sits at the base of the screen and
+    // rides up with the keyboard (KeyboardAvoidingView), dropping back down
+    // when the keyboard is dismissed.
     footer: {
-      marginTop: theme.spacing.xxl,
-      paddingBottom: theme.semanticSpacing.section,
+      paddingTop: theme.semanticSpacing.component,
+      paddingBottom: theme.semanticSpacing.component,
       gap: theme.spacing.md,
     },
     authButton: {
@@ -253,7 +260,7 @@ export default function RegisterPhoneScreen() {
     },
     authButtonLabel: {
       ...theme.typography.text16Bold,
-      color: theme.colors.textInverse,
+      color: canContinue ? theme.colors.onPrimary : theme.colors.textDisabled,
     },
     loginRow: {
       alignItems: "center",
@@ -274,62 +281,64 @@ export default function RegisterPhoneScreen() {
         <BackButton />
         <StepDots total={SIGNUP_STEP_COUNT} current={0} />
       </View>
-      <View style={styles.body}>
-        <Text style={styles.title}>What&apos;s your{"\n"}phone number?</Text>
-        <Text style={styles.subtitle}>We&apos;ll send a 6-digit code to verify your number</Text>
-        {consentsUnavailable ? <Text style={styles.errorText}>Sign-up isn&apos;t available right now. Please try again later or contact support.</Text> : null}
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>What&apos;s your{"\n"}phone number?</Text>
+          <Text style={styles.subtitle}>We&apos;ll send a 6-digit code to verify your number</Text>
+          {consentsUnavailable ? <Text style={styles.errorText}>Sign-up isn&apos;t available right now. Please try again later or contact support.</Text> : null}
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <View style={styles.fieldGroup}>
-          <View>
-            <Text style={styles.fieldLabel}>Phone Number</Text>
-            <View style={styles.phoneRow}>
-              <View style={styles.countryChip}>
-                <Text style={styles.flagEmoji}>🇳🇬</Text>
-                <Text style={styles.countryCode}>+234</Text>
-              </View>
-              <View style={styles.phoneInput}>
-                <TextField value={localNumber} onChangeText={setLocalNumber} placeholder="8012345678" keyboardType="number-pad" maxLength={10} autoFocus />
+          <View style={styles.fieldGroup}>
+            <View>
+              <Text style={styles.fieldLabel}>Phone Number</Text>
+              <View style={styles.phoneRow}>
+                <View style={styles.countryChip}>
+                  <Text style={styles.flagEmoji}>🇳🇬</Text>
+                  <Text style={styles.countryCode}>+234</Text>
+                </View>
+                <View style={styles.phoneInput}>
+                  <TextField value={localNumber} onChangeText={setLocalNumber} placeholder="8012345678" keyboardType="number-pad" maxLength={10} autoFocus />
+                </View>
               </View>
             </View>
-          </View>
 
-          <View>
-            <Pressable style={styles.referralToggle} onPress={() => setShowReferral((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: showReferral }}>
-              <View style={styles.referralCheckbox}>{showReferral ? <Ionicons name="checkmark" size={12} color={theme.colors.secondary} /> : null}</View>
-              <Text style={styles.referralLabel}>Have a referral code?</Text>
-            </Pressable>
-            {showReferral && (
-              <View style={styles.referralField}>
-                <TextInput
-                  value={referralCode}
-                  onChangeText={setReferralCode}
-                  placeholder="e.g. PARC-ABCD123"
-                  placeholderTextColor={theme.colors.textMuted}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  style={[styles.referralInput, styles.referralInputText]}
-                />
-                <Text style={styles.referralHelper}>Referral codes give you and your friend bonuses</Text>
-              </View>
-            )}
-          </View>
+            <View>
+              <Pressable style={styles.referralToggle} onPress={() => setShowReferral((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: showReferral }}>
+                <View style={styles.referralCheckbox}>{showReferral ? <Ionicons name="checkmark" size={12} color={theme.colors.secondary} /> : null}</View>
+                <Text style={styles.referralLabel}>Have a referral code?</Text>
+              </Pressable>
+              {showReferral && (
+                <View style={styles.referralField}>
+                  <TextInput
+                    value={referralCode}
+                    onChangeText={setReferralCode}
+                    placeholder="e.g. PARC-ABCD123"
+                    placeholderTextColor={theme.colors.textMuted}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    style={[styles.referralInput, styles.referralInputText]}
+                  />
+                  <Text style={styles.referralHelper}>Referral codes give you and your friend bonuses</Text>
+                </View>
+              )}
+            </View>
 
-          <View style={styles.consentRow}>
-            <Checkbox
-              checked={agreedToTerms}
-              onToggle={() => setAgreedToTerms((prev) => !prev)}
-              label={
-                <Text style={styles.consentLabel}>
-                  I have read, understood and agreed to the <Text style={styles.consentBold}>Terms of Service</Text> and <Text style={styles.consentBold}>Privacy Policy</Text>
-                </Text>
-              }
-            />
-            <Pressable style={styles.legalLinkRow} onPress={() => router.push("/(auth)/legal")} accessibilityRole="link">
-              <Text style={styles.legalLink}>Read the Terms of Service and Privacy Policy</Text>
-            </Pressable>
+            <View style={styles.consentRow}>
+              <Checkbox
+                checked={agreedToTerms}
+                onToggle={() => setAgreedToTerms((prev) => !prev)}
+                label={
+                  <Text style={styles.consentLabel}>
+                    I have read, understood and agreed to the <Text style={styles.consentBold}>Terms of Service</Text> and <Text style={styles.consentBold}>Privacy Policy</Text>
+                  </Text>
+                }
+              />
+              <Pressable style={styles.legalLinkRow} onPress={() => router.push("/(auth)/legal")} accessibilityRole="link">
+                <Text style={styles.legalLink}>Read the Terms of Service and Privacy Policy</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
+        </ScrollView>
 
         <View style={styles.footer}>
           <Pressable style={styles.authButton} disabled={!canContinue || isSubmitting} onPress={handleContinue} accessibilityRole="button">
@@ -341,7 +350,7 @@ export default function RegisterPhoneScreen() {
             </Text>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ScreenContainer>
   );
 }

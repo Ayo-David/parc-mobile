@@ -33,3 +33,23 @@ export function withAlpha(hex: HexColor, alpha: number): string {
   const clampedAlpha = Math.min(1, Math.max(0, alpha));
   return `rgba(${r}, ${g}, ${b}, ${clampedAlpha})`;
 }
+
+function relativeLuminance(hex: HexColor): number {
+  const normalized = normalizeHex(hex);
+  const [r, g, b] = [0, 2, 4].map((offset) => {
+    const channel = parseInt(normalized.slice(offset, offset + 2), 16) / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+
+/**
+ * Picks whichever of black/white has the higher WCAG contrast against
+ * `background`. Used to derive `onPrimary` when a tenant overrides `primary`.
+ */
+export function readableTextOn(background: HexColor): HexColor {
+  const luminance = relativeLuminance(background);
+  const contrastWithWhite = 1.05 / (luminance + 0.05);
+  const contrastWithBlack = (luminance + 0.05) / 0.05;
+  return contrastWithWhite >= contrastWithBlack ? "#FFFFFF" : "#000000";
+}

@@ -28,7 +28,7 @@ export default function EditBeneficiaryScreen() {
   const [nickname, setNickname] = useState(entry ? (firstString(entry, ["name"]) ?? "") : "");
   const [showLimitation, setShowLimitation] = useState(false);
 
-  const palette = [theme.colors.secondary, theme.colors.primary, theme.colors.success, theme.colors.info, theme.colors.warning];
+  const palette = [theme.colors.secondary, theme.colors.surfaceInverse, theme.colors.success, theme.colors.info, theme.colors.warning];
 
   const styles = StyleSheet.create({
     content: { flex: 1, paddingTop: theme.semanticSpacing.section, gap: theme.semanticSpacing.form },

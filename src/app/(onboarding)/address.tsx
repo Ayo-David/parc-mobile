@@ -1,23 +1,29 @@
 import { useState } from "react";
+import { View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { useBootstrap } from "@/api/queries/useBootstrap";
 import { useOnboardingReferenceData } from "@/api/queries/useOnboardingReferenceData";
-import { Button } from "@/components/Button/Button";
-import { FormScreenLayout } from "@/components/FormScreenLayout/FormScreenLayout";
+import { AuthButton } from "@/components/AuthButton/AuthButton";
+import { LabeledField } from "@/components/LabeledField/LabeledField";
 import { PickerField } from "@/components/PickerField/PickerField";
 import { TextField } from "@/components/TextField/TextField";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
+import { OnboardingStepLayout } from "@/features/onboarding/OnboardingStepLayout";
+import { useTheme } from "@/theme";
 
 /**
  * Figma "AddressVerification" (node 226:1931). The confirmed contract
  * (`OnboardingAddress`) still types state/lga as free-text strings, but
  * RESOLVED (PLAN.md "Real blockers"): the real `GET /v1/onboarding/reference-data`
  * endpoint now exposes a states/LGA list, so this submits the real names
- * picked from that list instead of arbitrary free text.
+ * picked from that list instead of arbitrary free text. Figma's "Area"
+ * row is drawn as a dropdown ("Select LGA first"), but the reference data
+ * has no per-LGA area list, so it stays a free-text field.
  */
 export default function OnboardingAddressScreen() {
+  const { theme } = useTheme();
   const bootstrap = useBootstrap();
   const referenceData = useOnboardingReferenceData(bootstrap.data?.tenant_id);
   const advanceOnboarding = useAdvanceOnboarding();
@@ -51,26 +57,47 @@ export default function OnboardingAddressScreen() {
   }
 
   return (
-    <FormScreenLayout
-      title="What's your address?"
-      subtitle="We use this to verify your account."
+    <OnboardingStepLayout
+      step={5}
+      title={"Where do\nyou live?"}
+      subtitle="Your residential address for account verification"
       errorMessage={error}
-      footer={<Button label="Continue" onPress={handleSubmit} disabled={!canContinue} loading={isSubmitting} />}
+      footerPlacement="inline"
+      footer={<AuthButton label="Continue →" onPress={handleSubmit} disabled={!canContinue} loading={isSubmitting} />}
     >
-      <PickerField
-        placeholder="State"
-        options={stateOptions}
-        selectedValue={stateName}
-        searchable
-        onSelect={(option) => {
-          setStateName(option.value);
-          setLga(null);
-        }}
-      />
-      <PickerField placeholder="LGA" options={lgaOptions} selectedValue={lga} searchable disabled={!selectedState} onSelect={(option) => setLga(option.value)} />
-      <TextField value={area} onChangeText={setArea} placeholder="Area" />
-      <TextField value={streetAddress} onChangeText={setStreetAddress} placeholder="Street address" />
-      <TextField value={landmark} onChangeText={setLandmark} placeholder="Landmark (optional)" />
-    </FormScreenLayout>
+      <View style={{ gap: theme.spacing.md + 2 }}>
+        <LabeledField label="State">
+          <PickerField
+            placeholder="Select State"
+            options={stateOptions}
+            selectedValue={stateName}
+            searchable
+            onSelect={(option) => {
+              setStateName(option.value);
+              setLga(null);
+            }}
+          />
+        </LabeledField>
+        <LabeledField label="LGA (Local Government Area)">
+          <PickerField
+            placeholder={selectedState ? "Select LGA" : "Select State first"}
+            options={lgaOptions}
+            selectedValue={lga}
+            searchable
+            disabled={!selectedState}
+            onSelect={(option) => setLga(option.value)}
+          />
+        </LabeledField>
+        <LabeledField label="Area">
+          <TextField value={area} onChangeText={setArea} placeholder="e.g. Lagos Island" />
+        </LabeledField>
+        <LabeledField label="Street Address">
+          <TextField value={streetAddress} onChangeText={setStreetAddress} placeholder="10 Broad Street, Lagos Island" autoComplete="street-address" />
+        </LabeledField>
+        <LabeledField label="Landmark / Nearest Bus Stop (optional)" helperText="Helps verify your address accurately">
+          <TextField value={landmark} onChangeText={setLandmark} placeholder="e.g. Beside First Bank" />
+        </LabeledField>
+      </View>
+    </OnboardingStepLayout>
   );
 }
