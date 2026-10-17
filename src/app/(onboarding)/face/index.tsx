@@ -91,7 +91,7 @@ export default function FaceConsentScreen() {
     },
     identityName: {
       ...theme.typography.text14Bold,
-      color: theme.colors.success,
+      color: theme.colors.secondary,
     },
     caption: {
       ...theme.typography.caption,
@@ -106,6 +106,8 @@ export default function FaceConsentScreen() {
       tone="primary"
       title="Verify it's really you"
       body="We use a quick face scan to confirm you match your BVN record and to stop anyone else opening an account in your name."
+      // Opens as a fresh step stack; BVN is already submitted, so there's nothing to go back to.
+      showBackButton={router.canGoBack()}
       footer={
         <>
           <Button label="Continue to camera" onPress={() => router.push("/(onboarding)/face/capture")} />

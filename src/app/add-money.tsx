@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { fundingAccountSetupState } from "@/api/errors";
-import { useWalletFundingDetails } from "@/api/queries/useWalletFundingDetails";
+import { useFundingSetupStall, useWalletFundingDetails } from "@/api/queries/useWalletFundingDetails";
 import { BackHeader } from "@/components/BackHeader/BackHeader";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { FundingAccountSetup } from "@/features/wallet/FundingAccountSetup";
@@ -36,6 +36,7 @@ export default function AddMoneyScreen() {
   const [justCopied, setJustCopied] = useState(false);
   const fundingData = funding.data;
   const setupState = fundingAccountSetupState(funding.error);
+  const setupStall = useFundingSetupStall(funding.refetch);
   const recipe = theme.components.walletCard;
 
   async function handleCopy() {
@@ -84,7 +85,12 @@ export default function AddMoneyScreen() {
       <BackHeader title="Add Money" />
 
       {setupState ? (
-        <FundingAccountSetup state={setupState} rejectionMessage={funding.error?.message} />
+        <FundingAccountSetup
+          state={setupState}
+          rejectionMessage={funding.error?.message}
+          isStalled={setupStall.isStalled}
+          onCheckAgain={setupStall.checkAgain}
+        />
       ) : !fundingData ? (
         <View style={styles.centered}>
           <ActivityIndicator color={theme.colors.primary} />

@@ -13,10 +13,13 @@ interface SessionState {
    * silently bouncing to Sign In — see `_layout.tsx`.
    */
   sessionExpired: boolean;
+  /** Set when onboarding finishes so the signed-out app opens Login rather than Get Started. */
+  loginRedirectPending: boolean;
   setHydrated: (session: StoredSession | null) => void;
   setSession: (session: StoredSession) => void;
   clearSession: () => void;
   setSessionExpired: (value: boolean) => void;
+  setLoginRedirectPending: (value: boolean) => void;
 }
 
 /**
@@ -29,8 +32,10 @@ export const useSessionStore = create<SessionState>((set) => ({
   isHydrated: false,
   session: null,
   sessionExpired: false,
+  loginRedirectPending: false,
   setHydrated: (session) => set({ isHydrated: true, session }),
   setSession: (session) => set({ session, sessionExpired: false }),
   clearSession: () => set({ session: null }),
   setSessionExpired: (sessionExpired) => set({ sessionExpired }),
+  setLoginRedirectPending: (loginRedirectPending) => set({ loginRedirectPending }),
 }));

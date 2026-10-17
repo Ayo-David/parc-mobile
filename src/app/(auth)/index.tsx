@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
+import { useSessionStore } from "@/state/stores/sessionStore";
 import { useTheme, withAlpha } from "@/theme";
 
 const parcLogo = require("../../../assets/images/parc-logo.png");
@@ -18,6 +20,15 @@ const parcLogo = require("../../../assets/images/parc-logo.png");
 export default function GetStartedScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const loginRedirectPending = useSessionStore((state) => state.loginRedirectPending);
+  const setLoginRedirectPending = useSessionStore((state) => state.setLoginRedirectPending);
+
+  // Just finished onboarding (features/onboarding/navigation.ts) — go straight to Login.
+  useEffect(() => {
+    if (!loginRedirectPending) return;
+    setLoginRedirectPending(false);
+    router.push("/(auth)/login");
+  }, [loginRedirectPending, router, setLoginRedirectPending]);
 
   const styles = StyleSheet.create({
     screen: {

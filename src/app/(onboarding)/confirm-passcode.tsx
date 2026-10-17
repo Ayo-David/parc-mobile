@@ -1,8 +1,8 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
+import { useResetOnboardingStack } from "@/features/onboarding/navigation";
 import { OnboardingPasscodeLayout } from "@/features/onboarding/OnboardingPasscodeLayout";
 import { consumeDraftPasscode } from "@/features/onboarding/passcodeDraft";
 
@@ -15,7 +15,7 @@ const PASSCODE_LENGTH = 6;
  * values, per the confirmed `LoginPasscodeSetup` contract.
  */
 export default function ConfirmPasscodeScreen() {
-  const router = useRouter();
+  const resetTo = useResetOnboardingStack();
   const [confirmation, setConfirmation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,19 +27,19 @@ export default function ConfirmPasscodeScreen() {
     }
     const draft = consumeDraftPasscode();
     if (!draft) {
-      router.replace({ pathname: "/(onboarding)/create-passcode", params: { reason: "expired" } });
+      resetTo({ pathname: "/(onboarding)/create-passcode", params: { reason: "expired" } });
       return;
     }
     if (draft !== next) {
       setConfirmation("");
-      router.replace({ pathname: "/(onboarding)/create-passcode", params: { reason: "mismatch" } });
+      resetTo({ pathname: "/(onboarding)/create-passcode", params: { reason: "mismatch" } });
       return;
     }
     setIsSubmitting(true);
     setError(null);
     api
       .setOnboardingLoginPasscode({ passcode: draft, passcodeConfirmation: next })
-      .then(() => router.replace("/(onboarding)/passcode-success"))
+      .then(() => resetTo("/(onboarding)/passcode-success"))
       .catch((submitError) => {
         setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
         setConfirmation("");

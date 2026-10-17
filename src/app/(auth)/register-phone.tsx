@@ -1,23 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { createIdempotencyKey } from "@/api/idempotency";
 import { useBootstrap } from "@/api/queries/useBootstrap";
 import { useOnboardingReferenceData } from "@/api/queries/useOnboardingReferenceData";
-import { BackButton } from "@/components/BackButton/BackButton";
 import { Checkbox } from "@/components/Checkbox/Checkbox";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
-import { StepDots } from "@/components/StepDots/StepDots";
 import { TextField } from "@/components/TextField/TextField";
+import { OnboardingHeader } from "@/features/onboarding/OnboardingStepLayout";
 import { useTheme } from "@/theme";
 
 const LOCAL_NUMBER_PATTERN = /^[789][01][0-9]{8}$/;
-const SIGNUP_STEP_COUNT = 7;
 
 /**
  * Figma node 322:263 — the canonical Phone Verification screen (with
@@ -122,12 +120,6 @@ export default function RegisterPhoneScreen() {
   }
 
   const styles = StyleSheet.create({
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingTop: theme.spacing.md,
-    },
     keyboardAvoider: {
       flex: 1,
     },
@@ -276,12 +268,10 @@ export default function RegisterPhoneScreen() {
   });
 
   return (
-    <ScreenContainer>
-      <View style={styles.header}>
-        <BackButton />
-        <StepDots total={SIGNUP_STEP_COUNT} current={0} />
-      </View>
-      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <ScreenContainer variant="auth">
+      <OnboardingHeader step={0} />
+      {/* "padding" on Android too: with edge-to-edge the window no longer resizes for the keyboard. */}
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior="padding">
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>What&apos;s your{"\n"}phone number?</Text>
           <Text style={styles.subtitle}>We&apos;ll send a 6-digit code to verify your number</Text>

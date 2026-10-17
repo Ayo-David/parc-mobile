@@ -20,6 +20,10 @@ export interface FundingAccountSetupProps {
   state: "none" | "pending" | "rejected";
   /** The server's reason when `state` is "rejected". */
   rejectionMessage?: string | null;
+  /** "pending" has outlived the polling limit; polling has stopped. */
+  isStalled?: boolean;
+  /** Resumes polling from the stalled state. */
+  onCheckAgain?: () => void;
 }
 
 /**
@@ -32,7 +36,7 @@ export interface FundingAccountSetupProps {
  * funding-details query polls while it's "pending".
  * No Figma frame exists for this step; it composes existing form components.
  */
-export function FundingAccountSetup({ state, rejectionMessage }: FundingAccountSetupProps) {
+export function FundingAccountSetup({ state, rejectionMessage, isStalled = false, onCheckAgain }: FundingAccountSetupProps) {
   const { theme } = useTheme();
   const queryClient = useQueryClient();
   const banks = useBanks();
@@ -90,6 +94,18 @@ export function FundingAccountSetup({ state, rejectionMessage }: FundingAccountS
       color: theme.colors.error,
     },
   });
+
+  if (state === "pending" && isStalled) {
+    return (
+      <View style={[styles.card, styles.pending]} accessibilityLiveRegion="polite">
+        <Text style={[styles.title, styles.centeredText]}>This is taking longer than usual</Text>
+        <Text style={[styles.body, styles.centeredText]}>
+          Our banking partner is still confirming your details. You don&apos;t need to submit them again — your account number will appear here once it&apos;s ready.
+        </Text>
+        {onCheckAgain ? <Button label="Check again" variant="secondary" onPress={onCheckAgain} /> : null}
+      </View>
+    );
+  }
 
   if (state === "pending") {
     return (

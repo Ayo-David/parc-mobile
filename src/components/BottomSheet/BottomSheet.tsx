@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { useTheme } from "@/theme";
 
@@ -14,12 +14,17 @@ export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
   const { theme } = useTheme();
 
   const styles = StyleSheet.create({
+    keyboardAvoider: {
+      flex: 1,
+    },
     overlay: {
       flex: 1,
       backgroundColor: theme.colors.scrim,
       justifyContent: "flex-end",
     },
     sheet: {
+      // Lets content (e.g. a searchable picker list) shrink above the keyboard instead of running under it or off the top.
+      maxHeight: "90%",
       backgroundColor: theme.colors.surface,
       borderTopLeftRadius: theme.radii.sheet,
       borderTopRightRadius: theme.radii.sheet,
@@ -38,12 +43,15 @@ export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
-          <View style={styles.handle} />
-          {children}
+      {/* A Modal is its own window, so the screen's KeyboardAvoidingView doesn't reach it; "padding" on Android too (edge-to-edge). */}
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior="padding">
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+            <View style={styles.handle} />
+            {children}
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

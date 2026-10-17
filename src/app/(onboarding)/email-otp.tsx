@@ -28,7 +28,8 @@ function formatCountdown(totalSeconds: number): string {
  * email screen; otherwise verification fails server-side with a clear
  * ApiError rather than the client guessing an ID. The countdown's
  * "Resend code" opens the same honest-disclosure sheet register-otp uses
- * — no resend endpoint exists. "Change it" goes back to the email screen.
+ * — no resend endpoint exists. "Change it" goes back to the email screen. Verification runs only
+ * when the customer taps "Verify Email", never on the sixth digit.
  */
 export default function OnboardingEmailOtpScreen() {
   const { theme } = useTheme();
@@ -66,11 +67,6 @@ export default function OnboardingEmailOtpScreen() {
         setCode("");
       })
       .finally(() => setIsVerifying(false));
-  }
-
-  function handleCodeChange(next: string) {
-    setCode(next);
-    verify(next);
   }
 
   const styles = StyleSheet.create({
@@ -134,7 +130,7 @@ export default function OnboardingEmailOtpScreen() {
       }
     >
       <View style={styles.otpRow}>
-        <OtpInput length={CODE_LENGTH} value={code} onChange={handleCodeChange} hasError={!!error} disabled={isVerifying} autoFocus />
+        <OtpInput length={CODE_LENGTH} value={code} onChange={setCode} hasError={!!error} disabled={isVerifying} autoFocus />
       </View>
       <View style={styles.countdownRow}>
         {secondsLeft > 0 ? (

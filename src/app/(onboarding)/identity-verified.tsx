@@ -3,14 +3,14 @@ import { StyleSheet, Text } from "react-native";
 
 import { AuthButton } from "@/components/AuthButton/AuthButton";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
-import { OnboardingSuccessLayout } from "@/features/onboarding/OnboardingSuccessLayout";
+import { OnboardingSuccessLayout, type SuccessCardRow } from "@/features/onboarding/OnboardingSuccessLayout";
 import { useTheme } from "@/theme";
 
-const NEXT_STEPS = [
-  { emoji: "🏠", label: "Address Verification" },
-  { emoji: "🛡️", label: "Compliance Check" },
-  { emoji: "💼", label: "Source of Income" },
-  { emoji: "🔢", label: "Set Login Passcode" },
+const NEXT_STEPS: SuccessCardRow[] = [
+  { icon: "home-outline", label: "Address Verification" },
+  { icon: "shield-checkmark-outline", label: "Compliance Check" },
+  { icon: "briefcase-outline", label: "Source of Income" },
+  { icon: "keypad-outline", label: "Set Login Passcode" },
 ];
 
 /**

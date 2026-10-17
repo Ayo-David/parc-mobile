@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
@@ -7,14 +7,15 @@ import { useBootstrap } from "@/api/queries/useBootstrap";
 import { useOnboardingReferenceData } from "@/api/queries/useOnboardingReferenceData";
 import { AuthButton } from "@/components/AuthButton/AuthButton";
 import { LabeledField } from "@/components/LabeledField/LabeledField";
+import { OptionCard } from "@/components/OptionCard/OptionCard";
 import { PickerField } from "@/components/PickerField/PickerField";
 import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
 import { OnboardingStepLayout } from "@/features/onboarding/OnboardingStepLayout";
 import { useTheme } from "@/theme";
 
 const OTHER_INCOME_CHOICES = [
-  { value: true, label: "Yes, I do" },
-  { value: false, label: "No, I don't" },
+  { value: true, label: "Yes, I do", description: "e.g. a side business, rent or investments" },
+  { value: false, label: "No, I don't", description: "My occupation is my only income" },
 ];
 
 /**
@@ -58,27 +59,13 @@ export default function OnboardingIncomeScreen() {
     }
   }
 
-  const recipe = theme.components.optionCard;
   const styles = StyleSheet.create({
     fields: {
       gap: theme.spacing.md + 2,
     },
-    choiceRow: {
-      flexDirection: "row",
-      gap: theme.spacing.sm + 2,
+    choices: {
+      gap: theme.semanticSpacing.authActions,
       marginTop: theme.spacing.xs,
-    },
-    choice: {
-      flex: 1,
-      alignItems: "center",
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.md + 2,
-      borderRadius: theme.radii.button,
-      borderWidth: theme.borderWidth.thin,
-    },
-    choiceLabel: {
-      ...theme.typography.text14Medium,
-      color: theme.colors.textPrimary,
     },
   });
 
@@ -98,27 +85,17 @@ export default function OnboardingIncomeScreen() {
           <PickerField placeholder="Select income range" options={incomeBandOptions} selectedValue={annualIncomeBand} onSelect={(option) => setAnnualIncomeBand(option.value)} />
         </LabeledField>
         <LabeledField label="Do you have other sources of income?">
-          <View style={styles.choiceRow} accessibilityRole="radiogroup">
-            {OTHER_INCOME_CHOICES.map((choice) => {
-              const selected = hasOtherIncome === choice.value;
-              return (
-                <Pressable
-                  key={choice.label}
-                  onPress={() => setHasOtherIncome(choice.value)}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  style={[
-                    styles.choice,
-                    {
-                      backgroundColor: selected ? recipe.selectedBackgroundColor : recipe.backgroundColor,
-                      borderColor: selected ? recipe.selectedBorderColor : recipe.borderColor,
-                    },
-                  ]}
-                >
-                  <Text style={styles.choiceLabel}>{choice.label}</Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.choices} accessibilityRole="radiogroup">
+            {OTHER_INCOME_CHOICES.map((choice) => (
+              <OptionCard
+                key={choice.label}
+                title={choice.label}
+                description={choice.description}
+                selected={hasOtherIncome === choice.value}
+                onPress={() => setHasOtherIncome(choice.value)}
+                disabled={isSubmitting}
+              />
+            ))}
           </View>
         </LabeledField>
       </View>

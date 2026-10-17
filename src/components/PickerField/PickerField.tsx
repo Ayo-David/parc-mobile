@@ -55,7 +55,11 @@ export function PickerField({ placeholder, options, selectedValue, onSelect, sea
     },
     sheetContent: {
       maxHeight: theme.spacing.xxxl * 10,
+      flexShrink: 1,
       gap: theme.semanticSpacing.component,
+    },
+    list: {
+      flexShrink: 1,
     },
     optionRow: {
       paddingVertical: theme.semanticSpacing.component,
@@ -85,6 +89,9 @@ export function PickerField({ placeholder, options, selectedValue, onSelect, sea
         <View style={styles.sheetContent}>
           {searchable ? <TextField value={query} onChangeText={setQuery} placeholder="Search" autoFocus /> : null}
           <FlatList
+            style={styles.list}
+            // One tap selects an option even while the search keyboard is open.
+            keyboardShouldPersistTaps="handled"
             data={filteredOptions}
             keyExtractor={(item) => item.value}
             ListEmptyComponent={<Text style={styles.empty}>No results.</Text>}

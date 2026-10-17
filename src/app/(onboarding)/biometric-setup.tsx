@@ -4,14 +4,13 @@ import { StatusBar } from "expo-status-bar";
 import { type ComponentProps, useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { AuthButton } from "@/components/AuthButton/AuthButton";
 import { BackButton } from "@/components/BackButton/BackButton";
 import { Button } from "@/components/Button/Button";
 import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { StatusScreenLayout } from "@/components/StatusScreenLayout/StatusScreenLayout";
-import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
+import { useFinishOnboarding } from "@/features/onboarding/navigation";
 import { useTheme } from "@/theme";
 
 type BiometricMethod = "fingerprint" | "face";
@@ -35,7 +34,7 @@ const METHOD_COPY: Record<BiometricMethod, { tab: string; title: string; subtitl
  */
 export default function BiometricSetupScreen() {
   const { theme } = useTheme();
-  const advanceOnboarding = useAdvanceOnboarding();
+  const finishOnboarding = useFinishOnboarding();
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,11 +71,9 @@ export default function BiometricSetupScreen() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await api.completeOnboarding({ biometricEnrolled });
-      await advanceOnboarding();
+      await finishOnboarding(biometricEnrolled);
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   }

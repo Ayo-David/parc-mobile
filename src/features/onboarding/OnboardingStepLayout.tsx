@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import type { ComponentProps, ReactNode } from "react";
 import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
 
@@ -19,9 +20,17 @@ export interface OnboardingHeaderProps {
   onBack?: () => void;
 }
 
-/** Back chip + step indicator row shared by every light onboarding frame (226:1735 and siblings). */
+/**
+ * Back chip + step indicator row shared by every light onboarding frame
+ * (226:1735 and siblings). Each server-declared step opens as a fresh stack
+ * (navigation.ts) because a completed step can't be resubmitted, so the back
+ * chip only shows when there's somewhere to go back to within the step; a
+ * same-size spacer keeps the row identical either way.
+ */
 export function OnboardingHeader({ step, rightLabel, onBack }: OnboardingHeaderProps) {
   const { theme } = useTheme();
+  const router = useRouter();
+  const showBack = !!onBack || router.canGoBack();
 
   const styles = StyleSheet.create({
     header: {
@@ -29,6 +38,10 @@ export function OnboardingHeader({ step, rightLabel, onBack }: OnboardingHeaderP
       alignItems: "center",
       justifyContent: "space-between",
       paddingTop: theme.spacing.md,
+    },
+    backSpacer: {
+      width: theme.control.backButton,
+      height: theme.control.backButton,
     },
     rightLabel: {
       ...theme.typography.text13SemiBold,
@@ -38,7 +51,7 @@ export function OnboardingHeader({ step, rightLabel, onBack }: OnboardingHeaderP
 
   return (
     <View style={styles.header}>
-      <BackButton onPress={onBack} />
+      {showBack ? <BackButton onPress={onBack} /> : <View style={styles.backSpacer} />}
       {rightLabel ? <Text style={styles.rightLabel}>{rightLabel}</Text> : step !== undefined ? <StepDots total={SIGNUP_STEP_COUNT} current={step} /> : null}
     </View>
   );

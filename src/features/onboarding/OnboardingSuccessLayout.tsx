@@ -7,7 +7,7 @@ import { ScreenContainer } from "@/components/ScreenContainer/ScreenContainer";
 import { useTheme } from "@/theme";
 
 export interface SuccessCardRow {
-  emoji: string;
+  icon: ComponentProps<typeof Ionicons>["name"];
   label: string;
 }
 
@@ -120,9 +120,6 @@ export function OnboardingSuccessLayout({ tone, icon, title, subtitle, note, car
       borderBottomWidth: theme.borderWidth.hairline,
       borderBottomColor: theme.colors.border,
     },
-    rowEmoji: {
-      ...theme.typography.emojiMedium,
-    },
     rowLabel: {
       ...theme.typography.text14Medium,
       color: theme.colors.textSecondary,
@@ -154,9 +151,7 @@ export function OnboardingSuccessLayout({ tone, icon, title, subtitle, note, car
           <Text style={styles.cardTitle}>{cardTitle}</Text>
           {rows.map((row, index) => (
             <View key={row.label} style={[styles.row, index < rows.length - 1 && styles.rowDivider]}>
-              <Text style={styles.rowEmoji} importantForAccessibility="no" accessibilityElementsHidden>
-                {row.emoji}
-              </Text>
+              <Ionicons name={row.icon} size={theme.icon.inline} color={theme.colors.textSecondary} importantForAccessibility="no" accessibilityElementsHidden />
               <Text style={styles.rowLabel}>{row.label}</Text>
               {showRowChevrons ? <Ionicons name="chevron-forward" size={theme.icon.inline} color={theme.colors.textDisabled} /> : null}
             </View>

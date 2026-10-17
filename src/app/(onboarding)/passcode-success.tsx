@@ -1,37 +1,46 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 import { AuthButton } from "@/components/AuthButton/AuthButton";
-import { useAdvanceOnboarding } from "@/features/onboarding/navigation";
-import { OnboardingSuccessLayout } from "@/features/onboarding/OnboardingSuccessLayout";
+import { useAdvanceOnboarding, useFinishOnboarding } from "@/features/onboarding/navigation";
+import { OnboardingSuccessLayout, type SuccessCardRow } from "@/features/onboarding/OnboardingSuccessLayout";
 import { useTheme } from "@/theme";
 
-const LOGIN_METHODS = [
-  { emoji: "🔢", label: "Phone or Email + Passcode" },
-  { emoji: "🔐", label: "Biometric (Face ID / Fingerprint)" },
+const LOGIN_METHODS: SuccessCardRow[] = [
+  { icon: "keypad-outline", label: "Phone or Email + Passcode" },
+  { icon: "finger-print-outline", label: "Biometric (Face ID / Fingerprint)" },
 ];
 
 /**
- * Figma "PasscodeSuccess" (node 226:2324). Figma's primary action reads
- * "Go to Login", but the customer already has a live session here, so it
- * finishes onboarding without biometrics (the same call biometric-setup's
- * "Use Passcode instead" makes) and lands them in the app — labelled for
- * what it actually does. "Set up Biometric login first" continues to the
- * server's next step (BIOMETRIC).
+ * Figma "PasscodeSuccess" (node 226:2324). "Go to Login" finishes
+ * onboarding without biometrics and signs the onboarding session out, so
+ * the customer lands on Login and signs in with the passcode they just
+ * set. "Set up Biometric login first" continues to the server's next step
+ * (BIOMETRIC).
  */
 export default function PasscodeSuccessScreen() {
   const { theme } = useTheme();
   const advanceOnboarding = useAdvanceOnboarding();
+  const finishOnboarding = useFinishOnboarding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function finishWithoutBiometrics() {
+  async function goToLogin() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await api.completeOnboarding({ biometricEnrolled: false });
+      await finishOnboarding(false);
+    } catch (submitError) {
+      setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
+      setIsSubmitting(false);
+    }
+  }
+
+  async function setUpBiometrics() {
+    setIsSubmitting(true);
+    setError(null);
+    try {
       await advanceOnboarding();
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : "Something went wrong. Please try again.");
@@ -74,8 +83,8 @@ export default function PasscodeSuccessScreen() {
               {error}
             </Text>
           ) : null}
-          <AuthButton label="Continue to Parc" onPress={finishWithoutBiometrics} loading={isSubmitting} />
-          <Pressable style={styles.secondary} onPress={() => void advanceOnboarding()} disabled={isSubmitting} accessibilityRole="button">
+          <AuthButton label="Go to Login" onPress={goToLogin} loading={isSubmitting} />
+          <Pressable style={styles.secondary} onPress={setUpBiometrics} disabled={isSubmitting} accessibilityRole="button">
             <Text style={styles.secondaryLabel}>Set up Biometric login first</Text>
           </Pressable>
         </>
